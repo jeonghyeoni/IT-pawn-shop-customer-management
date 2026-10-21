@@ -48,7 +48,6 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
       <div className="row between" style={{ gap: 16 }}>
         <div className="row" style={{ gap: 14 }}>
           <h1 style={{ fontSize: 36, fontWeight: 900 }}>{c.collateral || '(담보물 미기재)'}</h1>
-          <StatusBadge status={c.status} style={{ fontSize: 20, padding: '6px 16px' }} />
         </div>
         <button type="button" className="name-link row" style={{ fontSize: 24, fontWeight: 700, gap: 10 }}
           onClick={() => go({ name: 'customer', id: customer.id })}>
@@ -56,12 +55,24 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
         </button>
       </div>
 
-      <div className="row between">
-        <div className="row">
+      <div className="row between" style={{ alignItems: 'stretch' }}>
+        {/* 현재 상태와, 계약을 끝낼 때 누르는 버튼을 분리해서 보여 준다 */}
+        <div className="status-bar">
+          <div className="status-now">
+            <span>현재 상태</span>
+            <StatusBadge status={c.status} style={{ fontSize: 20, padding: '4px 16px' }} />
+          </div>
           {active ? (
             <>
-              <button type="button" className="btn success" onClick={() => setStatus('repaid')}>상환 완료 (계약 종료)</button>
-              <button type="button" className="btn plain" onClick={() => setStatus('forfeited')}>유질 처리 (담보물 처분)</button>
+              <span className="status-bar-label">계약 종료 처리 →</span>
+              <button type="button" className="action-btn green" onClick={() => setStatus('repaid')}>
+                <span className="t">상환 완료 처리하기</span>
+                <span className="s">원금과 이자를 모두 받았을 때</span>
+              </button>
+              <button type="button" className="action-btn orange" onClick={() => setStatus('forfeited')}>
+                <span className="t">유질 처리하기</span>
+                <span className="s">상환하지 않아 담보물을 처분할 때</span>
+              </button>
             </>
           ) : (
             <>

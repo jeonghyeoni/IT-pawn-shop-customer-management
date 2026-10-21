@@ -147,8 +147,8 @@ try {
   await row1.getByRole('button', { name: /수납 확인/ }).click();
   await row1.getByRole('button', { name: /수납 완료\s*10월 21일/ }).waitFor();
   await shot('07-contract-detail-periods');
-  await page.getByRole('button', { name: '상환 완료 (계약 종료)' }).click();
-  await page.getByRole('button', { name: '상환 완료 처리' }).click();
+  await page.getByRole('button', { name: /상환 완료 처리하기/ }).click();
+  await page.getByRole('button', { name: '상환 완료 처리', exact: true }).click();
   await page.getByRole('button', { name: '진행 중으로 복원' }).waitFor();
 
   // ---- 회원 ----
