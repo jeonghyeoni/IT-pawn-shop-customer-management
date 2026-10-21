@@ -2,9 +2,11 @@ name: Release
 
 # package.json 의 version 을 올리고 'v1.2.3' 같은 태그를 push 하면
 # Windows 설치 파일을 만들어 이 저장소의 Release 로 올린다.
+# 태그 없이 Actions 화면의 [Run workflow] 로 돌려도 된다 (그때는 package.json 버전으로 태그가 생긴다).
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -21,6 +23,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - name: 태그와 package.json 버전이 같은지 확인
+        if: github.ref_type == 'tag'
         shell: bash
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
       - run: npm run release

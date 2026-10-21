@@ -62,6 +62,7 @@ npm version patch          # 1.0.0 → 1.0.1 (package.json 수정 + 커밋 + 태
 git push && git push --tags
 ```
 태그가 올라가면 GitHub Actions(`Release`)가 Windows 설치 파일을 만들어 이 저장소의 Release로 올립니다.
+태그 대신 GitHub → **Actions → Release → Run workflow** 를 눌러도 됩니다 (main 의 package.json 버전으로 Release와 태그가 만들어집니다. 버전은 먼저 올려 두세요).
 클라이언트 프로그램은 켤 때와 4시간마다 확인해서 **[지금 업데이트]** 띠를 띄우고, 누르면 내려받은 뒤 저절로 다시 켜집니다.
 
 **클라이언트 PC 첫 설치**: https://github.com/jeonghyeoni/IT-pawn-shop-customer-management/releases/latest 에서 `PawnShopManager-Setup-x.y.z.exe` 를 받아 실행합니다.
