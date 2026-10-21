@@ -64,15 +64,8 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
           </div>
           {active ? (
             <>
-              <span className="status-bar-label">계약 종료 처리 →</span>
-              <button type="button" className="action-btn green" onClick={() => setStatus('repaid')}>
-                <span className="t">상환 완료 처리하기</span>
-                <span className="s">원금과 이자를 모두 받았을 때</span>
-              </button>
-              <button type="button" className="action-btn orange" onClick={() => setStatus('forfeited')}>
-                <span className="t">유질 처리하기</span>
-                <span className="s">상환하지 않아 담보물을 처분할 때</span>
-              </button>
+              <button type="button" className="action-btn green" onClick={() => setStatus('repaid')}>상환 완료 처리</button>
+              <button type="button" className="action-btn orange" onClick={() => setStatus('forfeited')}>유질 처리</button>
             </>
           ) : (
             <>
