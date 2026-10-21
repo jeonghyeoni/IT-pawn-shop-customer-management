@@ -53,27 +53,18 @@ tests/        단위 테스트, e2e/smoke.mjs
 
 ## 업데이트 배포 (자동 업데이트)
 
-이 저장소는 **비공개**라서 클라이언트 PC가 여기서 설치 파일을 받을 수 없습니다.
-그래서 설치 파일만 **공개 저장소 `jeonghyeoni/IT-pawn-shop-releases`** 에 올리고, 프로그램은 그 저장소의 최신 Release를 확인합니다. (소스 코드는 올라가지 않습니다.)
-
-**처음 한 번만 준비**
-1. GitHub에서 **공개(Public)** 저장소 `IT-pawn-shop-releases` 를 만듭니다 (README 하나 있어도 됨).
-2. GitHub → Settings → Developer settings → **Fine-grained personal access token** 을 만들고,
-   Repository access 는 `IT-pawn-shop-releases` 만, Permissions 는 **Contents: Read and write** 로 줍니다.
-3. 이 저장소 → Settings → Secrets and variables → Actions → **New repository secret**
-   이름 `RELEASE_TOKEN`, 값은 위 토큰.
-
-> 이 저장소를 공개로 바꿔도 된다면 `electron-builder.yml` 의 `repo` 를 `IT-pawn-shop-customer-management` 로 바꾸고, 토큰 대신 기본 `GITHUB_TOKEN` 을 써도 됩니다.
+설치 파일은 이 저장소(공개)의 **Releases** 에 올라가고, 프로그램은 최신 Release를 확인해서 업데이트합니다.
+따로 준비할 것은 없습니다 (GitHub Actions 기본 권한으로 올립니다).
 
 **새 버전 올리기**
 ```bash
 npm version patch          # 1.0.0 → 1.0.1 (package.json 수정 + 커밋 + 태그 v1.0.1)
 git push && git push --tags
 ```
-태그가 올라가면 GitHub Actions(`Release`)가 Windows 설치 파일을 만들어 공개 저장소의 Release로 올립니다.
+태그가 올라가면 GitHub Actions(`Release`)가 Windows 설치 파일을 만들어 이 저장소의 Release로 올립니다.
 클라이언트 프로그램은 켤 때와 4시간마다 확인해서 **[지금 업데이트]** 띠를 띄우고, 누르면 내려받은 뒤 저절로 다시 켜집니다.
 
-**클라이언트 PC 첫 설치**: 공개 저장소의 Release 에서 `PawnShopManager-Setup-x.y.z.exe` 를 받아 실행합니다.
+**클라이언트 PC 첫 설치**: https://github.com/jeonghyeoni/IT-pawn-shop-customer-management/releases/latest 에서 `PawnShopManager-Setup-x.y.z.exe` 를 받아 실행합니다.
 코드 서명 인증서가 없어서 처음 설치 때 Windows가 “PC 보호” 경고를 띄울 수 있습니다 → **추가 정보 → 실행**. 이후 업데이트는 그대로 됩니다.
 
 푸시할 때마다 `CI` 워크플로가 테스트·점검을 돌리고, Windows 설치 파일을 Actions 아티팩트(`windows-installer`)로 남깁니다.

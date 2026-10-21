@@ -19,10 +19,10 @@ nsis:
   createDesktopShortcut: always
   shortcutName: 전당포 관리
   deleteAppDataOnUninstall: false
-# 소스 저장소는 비공개라서, 설치 파일은 공개 저장소(설치 파일만 올라감)에 올린다.
-# 클라이언트 PC 프로그램은 이 저장소의 최신 Release 를 보고 업데이트한다.
+# 설치 파일은 이 (공개) 저장소의 Releases 에 올라가고,
+# 클라이언트 PC 프로그램은 최신 Release 를 보고 업데이트한다.
 publish:
   provider: github
   owner: jeonghyeoni
-  repo: IT-pawn-shop-releases
+  repo: IT-pawn-shop-customer-management
   releaseType: release
