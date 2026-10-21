@@ -202,7 +202,7 @@ export function nextLabel(c: Contract, sentPeriods: Set<number>, today: ISODate)
   if (c.status !== 'active') return { label: '—', kind: 'none' };
   const missed = periodsUntil(c.contractDate, today).filter((n) => !sentPeriods.has(n) && dueDate(c.contractDate, n) < today);
   const maturity = c.maturityDate && daysBetween(today, c.maturityDate) <= MATURITY_WARN_DAYS ? ' · 만기' : '';
-  if (missed.length) return { label: `${shortDate(dueDate(c.contractDate, missed[0]))} 못 보냄${maturity}`, kind: 'late' };
+  if (missed.length) return { label: `${shortDate(dueDate(c.contractDate, missed[0]))} 미발송${maturity}`, kind: 'late' };
   let n = 1;
   while (dueDate(c.contractDate, n) < today || (dueDate(c.contractDate, n) === today && sentPeriods.has(n))) n++;
   const due = dueDate(c.contractDate, n);

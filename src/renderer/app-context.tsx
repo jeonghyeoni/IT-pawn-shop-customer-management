@@ -73,7 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             {dialog.body && <div style={{ color: 'var(--ink-2)' }}>{dialog.body}</div>}
             <div className="row">
               <button type="button" className="btn warn" autoFocus onClick={() => close(true)}>{dialog.yes}</button>
-              <button type="button" className="btn plain" onClick={() => close(false)}>{dialog.no ?? '아니요'}</button>
+              <button type="button" className="btn plain" onClick={() => close(false)}>{dialog.no ?? '취소'}</button>
             </div>
           </div>
         </div>

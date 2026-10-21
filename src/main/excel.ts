@@ -3,7 +3,7 @@ import { dueDate } from '../shared/schedule';
 import type { ContractRow, ContractStatus } from '../shared/types';
 import type { ScheduleData } from '../shared/schedule';
 
-const STATUS: Record<ContractStatus, string> = { active: '진행 중', repaid: '상환 완료', forfeited: '유질 (처분)' };
+const STATUS: Record<ContractStatus, string> = { active: '진행 중', repaid: '상환 완료', forfeited: '유질' };
 const MONEY = '#,##0"원"';
 
 function sheet(wb: ExcelJS.Workbook, name: string, columns: { header: string; key: string; width: number; money?: boolean }[]) {
@@ -18,15 +18,15 @@ function contractSheet(wb: ExcelJS.Workbook, rows: ContractRow[]) {
   const ws = sheet(wb, '계약', [
     { header: '계약번호', key: 'id', width: 10 },
     { header: '계약일', key: 'contractDate', width: 13 },
-    { header: '계약자', key: 'name', width: 12 },
+    { header: '채무자', key: 'name', width: 12 },
     { header: '전화번호', key: 'phone', width: 16 },
-    { header: '맡긴 물건', key: 'collateral', width: 32 },
-    { header: '빌려준 돈', key: 'principal', width: 14, money: true },
+    { header: '담보물', key: 'collateral', width: 32 },
+    { header: '대부금액', key: 'principal', width: 14, money: true },
     { header: '이자율', key: 'rate', width: 10 },
-    { header: '매달 이자', key: 'monthlyInterest', width: 13, money: true },
+    { header: '월 이자', key: 'monthlyInterest', width: 13, money: true },
     { header: '만기일', key: 'maturityDate', width: 13 },
     { header: '상태', key: 'status', width: 12 },
-    { header: '다음 문자', key: 'next', width: 16 }
+    { header: '다음 고지일', key: 'next', width: 16 }
   ]);
   for (const r of rows) {
     ws.addRow({
@@ -49,24 +49,24 @@ export async function writeAll(file: string, data: ScheduleData & { rows: Contra
   const customers = new Map(data.customers.map((c) => [c.id, c]));
   const contracts = new Map(data.contracts.map((c) => [c.id, c]));
 
-  const cs = sheet(wb, '회원', [
-    { header: '회원번호', key: 'id', width: 10 },
+  const cs = sheet(wb, '채무자', [
+    { header: '채무자번호', key: 'id', width: 10 },
     { header: '이름', key: 'name', width: 12 },
     { header: '전화번호', key: 'phone', width: 16 },
-    { header: '메모', key: 'memo', width: 40 },
+    { header: '비고', key: 'memo', width: 40 },
     { header: '등록일', key: 'createdAt', width: 20 }
   ]);
   for (const c of data.customers) cs.addRow(c);
 
   contractSheet(wb, data.rows);
 
-  const ps = sheet(wb, '이자 받은 기록', [
+  const ps = sheet(wb, '이자 수납 내역', [
     { header: '계약번호', key: 'contractId', width: 10 },
-    { header: '계약자', key: 'name', width: 12 },
+    { header: '채무자', key: 'name', width: 12 },
     { header: '전화번호', key: 'phone', width: 16 },
     { header: '회차', key: 'period', width: 8 },
-    { header: '받을 날', key: 'due', width: 13 },
-    { header: '받은 날', key: 'paidDate', width: 13 },
+    { header: '납부일', key: 'due', width: 13 },
+    { header: '수납일', key: 'paidDate', width: 13 },
     { header: '금액', key: 'amount', width: 13, money: true }
   ]);
   for (const p of [...data.payments].sort((a, b) => a.paidDate.localeCompare(b.paidDate))) {
@@ -75,17 +75,17 @@ export async function writeAll(file: string, data: ScheduleData & { rows: Contra
     ps.addRow({ ...p, name: cust?.name ?? '', phone: cust?.phone ?? '', due: c ? dueDate(c.contractDate, p.period) : '' });
   }
 
-  const ns = sheet(wb, '문자 보낸 기록', [
+  const ns = sheet(wb, '이자 고지 발송 내역', [
     { header: '계약번호', key: 'contractId', width: 10 },
-    { header: '계약자', key: 'name', width: 12 },
+    { header: '채무자', key: 'name', width: 12 },
     { header: '전화번호', key: 'phone', width: 16 },
     { header: '회차', key: 'period', width: 8 },
-    { header: '보낸 때', key: 'sentAt', width: 20 }
+    { header: '발송일시', key: 'sentAt', width: 20 }
   ]);
   for (const n of [...data.notices].sort((a, b) => a.sentAt.localeCompare(b.sentAt))) {
     const c = contracts.get(n.contractId);
     const cust = c && customers.get(c.customerId);
-    ns.addRow({ ...n, name: cust?.name ?? '', phone: cust?.phone ?? '', sentAt: n.auto ? '이전 기록' : n.sentAt });
+    ns.addRow({ ...n, name: cust?.name ?? '', phone: cust?.phone ?? '', sentAt: n.auto ? '이관 처리' : n.sentAt });
   }
 
   await wb.xlsx.writeFile(file);

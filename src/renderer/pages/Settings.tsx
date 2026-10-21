@@ -33,10 +33,10 @@ export function Settings({ settings, onSaved }: { settings: SettingsT; onSaved: 
       <h1 className="page-title">설정</h1>
 
       <section className="card" style={{ padding: 28 }}>
-        <h2 className="section-title">가게 정보와 문자 문구</h2>
+        <h2 className="section-title">업체 정보 및 고지 문구</h2>
         <div className="row top" style={{ gap: 16 }}>
           <div className="field" style={{ flex: '1 1 260px' }}>
-            <label htmlFor="s-shop">가게 이름</label>
+            <label htmlFor="s-shop">상호</label>
             <input id="s-shop" className="input" value={form.shopName} placeholder="예: 행복전당포" onChange={(e) => setForm({ ...form, shopName: e.target.value })} />
           </div>
           <div className="field" style={{ flex: '1 1 320px' }}>
@@ -45,10 +45,10 @@ export function Settings({ settings, onSaved }: { settings: SettingsT; onSaved: 
           </div>
         </div>
         <div className="field">
-          <label htmlFor="s-template">이자 문자 문구</label>
+          <label htmlFor="s-template">이자 고지 문구</label>
           <textarea id="s-template" className="textarea" rows={3} value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value })} />
           <div className="hint">
-            중괄호 안 글자는 자동으로 바뀝니다: {'{이름} {이자} {월} {납부일} {회차} {가게이름} {계좌}'}
+            중괄호 항목은 자동으로 채워집니다: {'{이름} {이자} {월} {납부일} {회차} {상호} {계좌}'}
           </div>
         </div>
         <div className="col" style={{ gap: 6 }}>
@@ -57,21 +57,21 @@ export function Settings({ settings, onSaved }: { settings: SettingsT; onSaved: 
         </div>
         <div className="row">
           <button type="button" className="btn primary" onClick={save}>저장</button>
-          <button type="button" className="btn plain md" onClick={() => setForm({ ...form, template: DEFAULT_TEMPLATE })}>문구를 처음 것으로</button>
+          <button type="button" className="btn plain md" onClick={() => setForm({ ...form, template: DEFAULT_TEMPLATE })}>기본 문구로 복원</button>
         </div>
       </section>
 
       <section className="card" style={{ padding: 28 }}>
-        <h2 className="section-title">자료 보관</h2>
+        <h2 className="section-title">데이터 관리</h2>
         <div style={{ color: 'var(--ink-2)' }}>
-          모든 자료는 이 컴퓨터의 <b>{info?.dataDir}</b> 폴더에 저장됩니다. 프로그램을 켤 때마다 하루 한 번 자동으로 백업합니다.
+          모든 데이터는 이 컴퓨터의 <b>{info?.dataDir}</b> 폴더에 저장됩니다. 프로그램 실행 시 하루 1회 자동으로 백업됩니다.
         </div>
         <div className="row">
           <button type="button" className="btn success" onClick={() => run(api.exportAll, (f) => `엑셀 파일을 저장했습니다: ${f}`)}>
-            <DownloadIcon />전체 자료 엑셀로 내보내기
+            <DownloadIcon />전체 데이터 엑셀 내보내기
           </button>
-          <button type="button" className="btn plain" onClick={() => run(api.backupNow, (f) => `백업했습니다: ${f}`)}>지금 백업하기</button>
-          <button type="button" className="btn plain" onClick={() => run(api.openDataFolder, () => '')}>자료 폴더 열기</button>
+          <button type="button" className="btn plain" onClick={() => run(api.backupNow, (f) => `백업했습니다: ${f}`)}>지금 백업</button>
+          <button type="button" className="btn plain" onClick={() => run(api.openDataFolder, () => '')}>데이터 폴더 열기</button>
         </div>
       </section>
 

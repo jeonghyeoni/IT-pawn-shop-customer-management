@@ -48,7 +48,7 @@ export function CustomerPicker({ value, onChange }: { value: Customer | null; on
   return (
     <div className="col" style={{ gap: 16 }}>
       <div className="field">
-        <label htmlFor="cust-q">이름이나 전화번호를 입력하세요</label>
+        <label htmlFor="cust-q">채무자 검색 (이름 또는 전화번호)</label>
         <input id="cust-q" className="input" style={{ fontSize: 24 }} value={query} placeholder="예: 김영수 또는 010-1234-5678"
           onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
       </div>
@@ -60,29 +60,29 @@ export function CustomerPicker({ value, onChange }: { value: Customer | null; on
               <div className="col" style={{ gap: 0 }}>
                 <span style={{ fontSize: 24, fontWeight: 900 }}>{m.name} <span style={{ fontWeight: 700 }}>{m.phone}</span></span>
                 <span className="hint">
-                  {m.activeCount < 0 ? '선택한 회원' : `진행 중인 계약 ${m.activeCount}건${m.closedCount ? ` · 끝난 계약 ${m.closedCount}건` : ''}`}
-                  {m.sameNameCount > 0 ? ' · 동명 이인 있음' : ''}
+                  {m.activeCount < 0 ? '선택한 채무자' : `진행 ${m.activeCount}건${m.closedCount ? ` · 종료 ${m.closedCount}건` : ''}`}
+                  {m.sameNameCount > 0 ? ' · 동명이인 있음' : ''}
                 </span>
               </div>
               <button type="button" className={`btn md ${on ? 'primary' : 'plain'}`} onClick={() => onChange(on ? null : m)}>
-                {on ? '선택됨' : '이 회원으로 선택'}
+                {on ? '선택됨' : '선택'}
               </button>
             </div>
           );
         })}
         {query.trim() && matches.length === 0 && !value && (
           <div className="hint" style={{ padding: '16px 20px', borderRadius: 12, background: 'var(--surface-2)', fontSize: 20 }}>
-            찾는 회원이 없습니다. 아래 버튼으로 새로 등록하세요.
+            검색 결과가 없습니다. 신규 채무자로 등록해 주세요.
           </div>
         )}
       </div>
       {!adding ? (
         <button type="button" className="btn md dashed" style={{ alignSelf: 'flex-start' }} onClick={startAdd}>
-          <PlusIcon />처음 오신 분 — 새 회원 등록
+          <PlusIcon />신규 채무자 등록
         </button>
       ) : (
         <div className="col" style={{ gap: 14, padding: 20, border: '2px solid var(--blue)', borderRadius: 14, background: 'var(--blue-softer)' }}>
-          <div style={{ fontSize: 22, fontWeight: 900 }}>새 회원 등록</div>
+          <div style={{ fontSize: 22, fontWeight: 900 }}>신규 채무자 등록</div>
           <div className="row top" style={{ gap: 16 }}>
             <div className="field" style={{ flex: '1 1 220px' }}>
               <label htmlFor="nc-name">이름</label>
@@ -95,12 +95,12 @@ export function CustomerPicker({ value, onChange }: { value: Customer | null; on
             </div>
           </div>
           <div className="field">
-            <label htmlFor="nc-memo">메모 <span className="muted" style={{ fontWeight: 400 }}>(선택)</span></label>
+            <label htmlFor="nc-memo">비고 <span className="muted" style={{ fontWeight: 400 }}>(선택)</span></label>
             <input id="nc-memo" className="input" value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} />
           </div>
-          {error && <div className="error-text">{error}{error.includes('이미') ? ' 그 회원을 선택해 두었습니다.' : ''}</div>}
+          {error && <div className="error-text">{error}{error.includes('이미') ? ' 기존 채무자를 선택했습니다.' : ''}</div>}
           <div className="row">
-            <button type="button" className="btn primary md" onClick={save}>회원 등록하고 선택</button>
+            <button type="button" className="btn primary md" onClick={save}>등록 후 선택</button>
             <button type="button" className="btn plain md" onClick={() => setAdding(false)}>취소</button>
           </div>
         </div>
