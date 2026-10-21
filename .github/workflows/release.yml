@@ -11,6 +11,9 @@ on:
 permissions:
   contents: write
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   release:
     runs-on: windows-latest
@@ -26,17 +29,29 @@ jobs:
         if: github.ref_type == 'tag'
         shell: bash
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
-      - name: 수동 실행이면 package.json 버전으로 태그 만들기
-        if: github.ref_type != 'tag'
+      - name: 릴리스 준비 (태그 만들기, 덜 만들어진 릴리스 정리)
         shell: bash
         run: |
           TAG="v$(node -p "require('./package.json').version")"
-          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
-            echo "::error::$TAG 은(는) 이미 있습니다. package.json 버전을 먼저 올려 주세요 (npm version patch)."
-            exit 1
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            if gh release view "$TAG" --json assets -q '.assets[].name' | grep -q '\.exe$'; then
+              echo "::error::$TAG 은(는) 이미 배포되었습니다. package.json 버전을 먼저 올려 주세요 (npm version patch)."
+              exit 1
+            fi
+            echo "설치 파일이 빠진 $TAG 릴리스를 지우고 다시 만듭니다."
+            gh release delete "$TAG" -y
           fi
-          git tag "$TAG"
-          git push origin "$TAG"
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            # 수동 실행: 지금 커밋에 태그를 (다시) 붙인다
+            if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+              git push origin ":refs/tags/$TAG"
+            fi
+            git tag -f "$TAG"
+            git push origin "$TAG"
+          fi
+      # 설치 파일을 모두 올린 다음에 공개한다 (중간에 실패해도 반쪽짜리 릴리스가 공개되지 않게)
       - run: npm run release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 릴리스 공개
+        shell: bash
+        run: gh release edit "$TAG" --draft=false --latest
