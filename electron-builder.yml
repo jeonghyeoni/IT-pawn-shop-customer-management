@@ -1,0 +1,28 @@
+appId: com.jeonghyeoni.pawnshop
+productName: 전당포 관리
+directories:
+  output: release
+files:
+  - dist/**
+  - package.json
+asarUnpack:
+  - node_modules/sql.js/dist/sql-wasm.wasm
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: PawnShopManager-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  createDesktopShortcut: always
+  shortcutName: 전당포 관리
+  deleteAppDataOnUninstall: false
+# 소스 저장소는 비공개라서, 설치 파일은 공개 저장소(설치 파일만 올라감)에 올린다.
+# 클라이언트 PC 프로그램은 이 저장소의 최신 Release 를 보고 업데이트한다.
+publish:
+  provider: github
+  owner: jeonghyeoni
+  repo: IT-pawn-shop-releases
+  releaseType: release
