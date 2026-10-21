@@ -26,6 +26,17 @@ jobs:
         if: github.ref_type == 'tag'
         shell: bash
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - name: 수동 실행이면 package.json 버전으로 태그 만들기
+        if: github.ref_type != 'tag'
+        shell: bash
+        run: |
+          TAG="v$(node -p "require('./package.json').version")"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "::error::$TAG 은(는) 이미 있습니다. package.json 버전을 먼저 올려 주세요 (npm version patch)."
+            exit 1
+          fi
+          git tag "$TAG"
+          git push origin "$TAG"
       - run: npm run release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
