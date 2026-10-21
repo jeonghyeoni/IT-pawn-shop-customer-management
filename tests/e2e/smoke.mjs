@@ -31,6 +31,8 @@ await page.setViewportSize({ width: 1280, height: 900 });
 await page.getByText('오늘 이자 고지', { exact: true }).waitFor();
 fs.writeFileSync(png, await page.screenshot());
 const shot = (name) => page.screenshot({ path: path.join(shots, `${name}.png`), fullPage: true });
+const zoomOf = (a) => a.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.getZoomFactor());
+assert.equal(await zoomOf(app), 0.8, '기본 화면 크기 80%');
 const call = (method, ...args) => page.evaluate(([m, a]) => window.pawn.invoke(m, a), [method, args]);
 
 // 파일 고르기/저장 창은 자동으로 답하게
@@ -167,6 +169,9 @@ try {
   await page.getByLabel('입금 계좌').fill('농협 123-4567-8901');
   await page.getByRole('button', { name: '저장', exact: true }).click();
   await page.getByText('행복전당포 관리').waitFor();
+  await page.getByRole('button', { name: '크게 (90%)' }).click();
+  await page.waitForFunction(() => document.querySelector('[aria-pressed="true"]')?.textContent?.includes('90%'));
+  assert.equal(await zoomOf(app), 0.9);
   await shot('10-settings');
 
   // 데이터가 파일로 남는지 + 백업
@@ -183,6 +188,7 @@ try {
 const again = await electron.launch({ args: ['.'], env: { ...process.env, PAWN_DATA_DIR: dataDir, PAWN_TODAY: '2026-10-21', PAWN_NO_MAXIMIZE: '1' } });
 const p2 = await again.firstWindow();
 await p2.getByText('행복전당포 관리').waitFor();
+assert.equal(await zoomOf(again), 0.9, '화면 크기 유지');
 const rows = await p2.evaluate(() => window.pawn.invoke('searchContracts', [{ query: '', from: null, to: null, status: 'all' }]));
 assert.equal(rows.length, 4);
 await again.close();

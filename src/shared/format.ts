@@ -53,11 +53,15 @@ export function rateText(rateType: RateType, rate: number): string {
   return `${rateType === 'month' ? '월' : '연'} ${rate}%`;
 }
 
+/** 설정에서 고를 수 있는 화면 배율. 1 은 v1.0.2 까지의 크기 */
+export const ZOOMS = [0.7, 0.8, 0.9, 1];
+export const DEFAULT_ZOOM = 0.8;
+
 export const DEFAULT_TEMPLATE =
   '[{상호}] {이름}님, {월}월 이자 {이자} 납부일({납부일})입니다. 입금 계좌: {계좌}. 감사합니다.';
 
 /** 문자 문구 만들기. 템플릿의 {이름} {이자} {월} {납부일} {회차} {상호} {계좌} 를 채운다 ({가게이름} 은 예전 이름). */
-export function renderMessage(settings: Settings, item: DueItem): string {
+export function renderMessage(settings: Pick<Settings, 'shopName' | 'account' | 'template'>, item: DueItem): string {
   const { m } = parseISO(item.dueDate);
   const values: Record<string, string> = {
     상호: settings.shopName || '상호',
