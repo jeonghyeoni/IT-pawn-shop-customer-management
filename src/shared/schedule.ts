@@ -88,6 +88,7 @@ function makeItem(
   const cust = idx.customers.get(c.customerId);
   const due = dueDate(c.contractDate, period);
   const notice = idx.notices.get(key(c.id, period));
+  const payment = idx.payments.get(key(c.id, period));
   return {
     contractId: c.id,
     customerId: c.customerId,
@@ -102,7 +103,8 @@ function makeItem(
     rate: c.rate,
     contractDate: c.contractDate,
     collateral: c.collateral,
-    paid: idx.payments.has(key(c.id, period)),
+    paid: !!payment,
+    paidDate: payment?.paidDate ?? null,
     daysLate: Math.max(0, daysBetween(due, today)),
     sentAt: notice?.sentAt ?? null
   };
@@ -115,15 +117,13 @@ export function buildDashboard(data: ScheduleData, today: ISODate, recentLimit =
   const late: DueItem[] = [];
   const unpaid: DueItem[] = [];
   const maturity: MaturityItem[] = [];
-  let todayTotal = 0;
 
   for (const c of data.contracts) {
     if (c.status !== 'active') continue;
     for (const n of periodsUntil(c.contractDate, today)) {
       const item = makeItem(c, n, today, idx);
-      const sent = idx.notices.has(key(c.id, n));
-      if (item.dueDate === today) todayTotal++;
-      if (!sent) (item.dueDate === today ? dueToday : late).push(item);
+      if (item.dueDate === today) dueToday.push(item);
+      else if (!item.sentAt) late.push(item);
       if (!item.paid && item.dueDate < today) unpaid.push(item);
     }
     if (c.maturityDate) {
@@ -150,7 +150,6 @@ export function buildDashboard(data: ScheduleData, today: ISODate, recentLimit =
   return {
     today,
     dueToday,
-    todayTotal,
     late,
     unpaid,
     maturity,
@@ -166,20 +165,20 @@ export function buildSentList(data: ScheduleData, today: ISODate): DueItem[] {
 
 /** 계약 상세의 회차별 표 (지난 회차 + 다음 예정 1회) */
 export function buildPeriods(c: Contract, notices: Notice[], payments: Payment[], today: ISODate): PeriodRow[] {
-  const sent = new Set(notices.map((n) => n.period));
+  const sent = new Map(notices.map((n) => [n.period, n.sentAt]));
   const paid = new Map(payments.map((p) => [p.period, p]));
   const rows: PeriodRow[] = periodsUntil(c.contractDate, activeUntil(c, today)).map((n) => {
     const due = dueDate(c.contractDate, n);
     return {
       period: n, dueDate: due, future: false, isToday: due === today,
-      sent: sent.has(n), paidDate: paid.get(n)?.paidDate ?? null, amount: paid.get(n)?.amount ?? c.monthlyInterest
+      sent: sent.has(n), sentAt: sent.get(n) ?? null, paidDate: paid.get(n)?.paidDate ?? null, amount: paid.get(n)?.amount ?? c.monthlyInterest
     };
   });
   if (c.status === 'active') {
     const n = rows.length + 1;
     rows.push({
       period: n, dueDate: dueDate(c.contractDate, n), future: true, isToday: false,
-      sent: false, paidDate: null, amount: c.monthlyInterest
+      sent: false, sentAt: null, paidDate: null, amount: c.monthlyInterest
     });
   }
   return rows;

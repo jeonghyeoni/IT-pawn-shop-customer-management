@@ -1,10 +1,10 @@
 import { useEffect, useState, type CSSProperties, type DragEvent, type ReactElement } from 'react';
-import { longDateWithWeekday } from '../../shared/format';
+import { longDateWithWeekday, monthDay } from '../../shared/format';
 import type { ContractStatus, ISODate, UpdateStatus } from '../../shared/types';
 import { api, photoUrl } from '../api';
 import { useApp, type TabName } from '../app-context';
 import {
-  BackIcon, CameraIcon, CashIcon, CheckIcon, CloseIcon, GearIcon, HomeIcon, MessageIcon, PlusIcon, SearchIcon, UserIcon
+  BackIcon, CameraIcon, CheckIcon, CloseIcon, GearIcon, HomeIcon, PlusIcon, SearchIcon, UserIcon
 } from './Icons';
 
 const TABS: { name: TabName; label: string; icon: ReactElement }[] = [
@@ -83,26 +83,38 @@ export function StatusBadge({ status, style }: { status: ContractStatus; style?:
   return <span className={`badge ${status}`} style={style}>{STATUS_LABEL[status]}</span>;
 }
 
-/** 보냄 ↔ 보냄 완료 (다시 누르면 취소) */
-export function SentButton({ sent, onClick, size = '' }: { sent: boolean; onClick: () => void; size?: '' | 'md' | 'sm' }) {
+/** 체크 칸: 빈 네모 ↔ 초록 ✓ (다시 누르면 해제). 체크되면 글자가 회색 취소선으로 바뀐다. */
+export function CheckToggle({ checked, title, sub, onClick, compact = false }: {
+  checked: boolean; title: string; sub: string; onClick: () => void; compact?: boolean;
+}) {
   return (
-    <button type="button" className={`btn ${size} ${sent ? 'primary' : 'outline'}`} aria-pressed={sent} onClick={onClick}
-      title={sent ? '다시 누르면 발송 처리가 취소됩니다' : undefined}>
-      {sent ? <CheckIcon size={size === 'sm' ? 20 : 24} /> : <MessageIcon size={size === 'sm' ? 20 : 24} />}
-      {sent ? '발송 완료' : '발송'}
+    <button type="button" className={`check-toggle${compact ? ' compact' : ''}${checked ? ' checked' : ''}`}
+      aria-pressed={checked} onClick={onClick} title={checked ? '다시 누르면 해제됩니다' : undefined}>
+      <span className="check-box">{checked && <CheckIcon size={compact ? 22 : 28} />}</span>
+      <span className="check-text">
+        <span className="check-title">{title}</span>
+        <span className="check-sub">{sub}</span>
+      </span>
     </button>
   );
 }
 
-/** 이자 받음 ↔ 이자 받음 완료 (다시 누르면 취소) */
-export function PaidButton({ paid, onClick, size = '' }: { paid: boolean; onClick: () => void; size?: '' | 'md' }) {
-  return (
-    <button type="button" className={`btn ${size} ${paid ? 'success' : 'outline-success'}`} aria-pressed={paid} onClick={onClick}
-      title={paid ? '다시 누르면 수납 처리가 취소됩니다' : undefined}>
-      {paid ? <CheckIcon /> : <CashIcon />}
-      {paid ? '수납 완료' : '이자 수납'}
-    </button>
-  );
+/** 문자 발송 체크. when: 발송 시각을 보여줄 글자 ('오늘 10:12', '9월 21일') */
+export function SentCheck({ sent, when, onClick, compact = false }: { sent: boolean; when: string; onClick: () => void; compact?: boolean }) {
+  return compact
+    ? <CheckToggle compact checked={sent} onClick={onClick} title={sent ? '발송 완료' : '발송 확인'} sub={sent ? when : '눌러서 체크'} />
+    : <CheckToggle checked={sent} onClick={onClick} title={sent ? '문자 발송 완료' : '문자 발송 확인'}
+      sub={sent ? `${when} · 다시 누르면 해제` : '문자를 보낸 뒤 눌러서 체크'} />;
+}
+
+/** 이자 수납 체크 */
+export function PaidCheck({ paidDate, onClick, compact = false }: { paidDate: string | null; onClick: () => void; compact?: boolean }) {
+  const paid = !!paidDate;
+  const when = paidDate ? monthDay(paidDate) : '';
+  return compact
+    ? <CheckToggle compact checked={paid} onClick={onClick} title={paid ? '수납 완료' : '수납 확인'} sub={paid ? when : '입금되면 체크'} />
+    : <CheckToggle checked={paid} onClick={onClick} title={paid ? '이자 수납 완료' : '이자 수납 확인'}
+      sub={paid ? `${when} · 다시 누르면 해제` : '입금되면 눌러서 체크'} />;
 }
 
 /** 사진 칸: 보기 / 추가(파일 고르기·끌어다 놓기) / 빼기 */

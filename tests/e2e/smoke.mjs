@@ -83,29 +83,40 @@ try {
 
   // ---- 오늘 할 일 ----
   await page.getByRole('button', { name: '오늘 할 일' }).click();
-  await page.getByText('오늘 이자 고지 대상').waitFor();
-  const cards = page.locator('.due-card:not(.late)');
-  assert.equal(await cards.count(), 3, '오늘 보낼 문자 3건');
-  assert.equal(await page.locator('.due-card.late').count(), 1, '못 보낸 문자 1건 (이민재 3회차)');
+  await page.getByText('오늘 이자 고지 · 발송 대기').waitFor();
+  const pending = page.locator('.due-card:not(.late)');
+  const doneCards = page.locator('article.card');
+  assert.equal(await pending.count(), 3, '오늘 발송 대기 3건');
+  assert.equal(await page.locator('.due-card.late').count(), 1, '미발송 고지 1건 (이민재 3회차)');
   await shot('04-today');
 
-  await cards.first().getByRole('button', { name: '문구 복사' }).click();
+  await pending.first().getByRole('button', { name: '문구 복사' }).click();
   const clip = await app.evaluate(({ clipboard }) => clipboard.readText());
   assert.match(clip, /이자 .+원 납부일/);
 
-  const firstName = await cards.first().locator('.big-phone').innerText();
-  await cards.first().getByRole('button', { name: '발송', exact: true }).click();
-  await page.locator('.list-row', { hasText: firstName }).waitFor();
-  assert.equal(await cards.count(), 2, '보낸 건은 오늘 목록에서 빠짐');
-  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '이자 수납' }).click();
-  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '수납 완료' }).waitFor();
+  // 발송 체크 → 오늘 목록 아래 '발송 완료' 구역으로 이동 + 최근 발송 내역에도 추가
+  const firstPhone = await pending.first().locator('.big-phone').innerText();
+  await pending.first().getByRole('button', { name: /문자 발송 확인/ }).click();
+  await page.getByText('발송 완료 1건').waitFor();
+  assert.equal(await pending.count(), 2, '발송한 건은 대기에서 빠짐');
+  const doneCard = doneCards.filter({ hasText: firstPhone });
+  await doneCard.getByRole('button', { name: /문자 발송 완료/ }).waitFor();
+  await page.locator('.list-row', { hasText: firstPhone }).getByText('미수납').waitFor();
+  await doneCard.getByRole('button', { name: /이자 수납 확인/ }).click();
+  await doneCard.getByRole('button', { name: /이자 수납 완료/ }).waitFor();
+  await doneCard.getByText('발송·수납 완료').waitFor();
   await shot('05-today-after-send');
 
-  // 보냄 취소 → 다시 오늘 목록으로
-  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '발송 완료' }).click();
+  // 발송 해제 → 다시 대기로
+  await doneCard.getByRole('button', { name: /문자 발송 완료/ }).click();
   await page.waitForFunction(() => document.querySelectorAll('.due-card:not(.late)').length === 3);
-  await cards.first().getByRole('button', { name: '발송', exact: true }).click();
-  await page.waitForFunction(() => document.querySelectorAll('.due-card:not(.late)').length === 2);
+  // 모두 발송하면 '완료'
+  for (let n = 3; n > 0; n--) {
+    await pending.first().getByRole('button', { name: /문자 발송 확인/ }).click();
+    await page.waitForFunction((left) => document.querySelectorAll('.due-card:not(.late)').length === left, n - 1);
+  }
+  await page.getByText('전체 3건 발송').waitFor();
+  await shot('05b-today-all-sent');
 
   // ---- 계약 목록 / 검색 / 엑셀 ----
   await page.getByRole('button', { name: '계약 목록' }).click();
@@ -123,13 +134,16 @@ try {
   await page.locator('tr', { hasText: '아이폰' }).click();
   await page.getByRole('heading', { name: '아이폰 15 Pro 256GB' }).waitFor();
   const row1 = page.locator('tbody tr').first();
-  await row1.getByRole('button', { name: /수납/ }).click();
+  await row1.getByRole('button', { name: '수납일 수정' }).click();
   await page.getByLabel('수납일').fill('2026-07-25');
-  await page.getByRole('button', { name: '수납일 저장' }).click();
-  await row1.getByText('7월 25일 수납').waitFor();
-  await row1.getByRole('button', { name: '발송 완료' }).click();
-  await row1.getByRole('button', { name: '발송', exact: true }).waitFor();
-  await row1.getByRole('button', { name: '발송', exact: true }).click();
+  await page.getByRole('button', { name: '저장', exact: true }).click();
+  await row1.getByRole('button', { name: /수납 완료\s*7월 25일/ }).waitFor();
+  await row1.getByRole('button', { name: /발송 완료/ }).click();
+  await row1.getByRole('button', { name: /발송 확인/ }).waitFor();
+  await row1.getByRole('button', { name: /발송 확인/ }).click();
+  await row1.getByRole('button', { name: /수납 완료/ }).click();
+  await row1.getByRole('button', { name: /수납 확인/ }).click();
+  await row1.getByRole('button', { name: /수납 완료\s*10월 21일/ }).waitFor();
   await shot('07-contract-detail-periods');
   await page.getByRole('button', { name: '상환 완료 (계약 종료)' }).click();
   await page.getByRole('button', { name: '상환 완료 처리' }).click();

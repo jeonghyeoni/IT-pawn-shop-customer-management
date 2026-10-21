@@ -71,9 +71,8 @@ describe('오늘 할 일', () => {
     const payments: Payment[] = [1, 2].map((p) => ({ contractId: 1, period: p, paidDate: '2026-08-01', amount: 30_000 }));
     const d = buildDashboard({ customers, contracts, notices, payments }, today);
 
-    expect(d.dueToday.map((i) => [i.contractId, i.period])).toEqual([[1, 4]]);
+    expect(d.dueToday.map((i) => [i.contractId, i.period, i.sentAt])).toEqual([[1, 4, null]]);
     expect(d.dueToday[0].sameName).toBe(true);
-    expect(d.todayTotal).toBe(1);
     // 계약 2: 9/19, 10/19 두 번 못 보냄
     expect(d.late.map((i) => [i.contractId, i.period, i.daysLate])).toEqual([[2, 1, 32], [2, 2, 2]]);
     // 미납: 계약1 3회차(9/21), 계약2 1·2회차. 오늘 회차는 아직 미납 아님. 끝난 계약 제외.
@@ -83,13 +82,14 @@ describe('오늘 할 일', () => {
     expect(d.recentTotal).toBe(3);
   });
 
-  it('보냄 처리하면 오늘 목록에서 빠지고 최근 보낸 목록에 들어간다', () => {
+  it('발송 처리해도 오늘 목록에 남고(sentAt 표시) 최근 발송 내역에도 들어간다', () => {
     const contracts = [contract({ id: 1, customerId: 3 })];
     const before = buildDashboard({ customers, contracts, notices: [], payments: [] }, today);
     expect(before.dueToday).toHaveLength(1);
     const notices: Notice[] = [{ contractId: 1, period: 4, sentAt: '2026-10-21 11:00:00', auto: false }];
-    const after = buildDashboard({ customers, contracts, notices, payments: [] }, today);
-    expect(after.dueToday).toHaveLength(0);
+    const payments: Payment[] = [{ contractId: 1, period: 4, paidDate: '2026-10-21', amount: 30_000 }];
+    const after = buildDashboard({ customers, contracts, notices, payments }, today);
+    expect(after.dueToday.map((i) => [i.sentAt, i.paidDate])).toEqual([['2026-10-21 11:00:00', '2026-10-21']]);
     expect(after.recent[0]).toEqual(expect.objectContaining({ period: 4, sentAt: '2026-10-21 11:00:00', sameName: false }));
   });
 
