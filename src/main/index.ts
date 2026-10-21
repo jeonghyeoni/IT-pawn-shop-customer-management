@@ -27,7 +27,7 @@ const today = () => process.env.PAWN_TODAY || todayISO();
 
 let win: BrowserWindow | null = null;
 
-function createWindow(): BrowserWindow {
+function createWindow(zoom: number): BrowserWindow {
   const w = new BrowserWindow({
     width: 1280,
     height: 900,
@@ -36,8 +36,9 @@ function createWindow(): BrowserWindow {
     show: false,
     backgroundColor: '#F3F4F6',
     title: '전당포 관리',
-    webPreferences: { preload: path.join(__dirname, '../preload/index.js'), contextIsolation: true, sandbox: true }
+    webPreferences: { preload: path.join(__dirname, '../preload/index.js'), contextIsolation: true, sandbox: true, zoomFactor: zoom }
   });
+  w.webContents.on('did-finish-load', () => w.webContents.setZoomFactor(zoom));
   w.once('ready-to-show', () => {
     if (!process.env.PAWN_NO_MAXIMIZE) w.maximize();
     w.show();
@@ -113,7 +114,10 @@ function makeApi(repo: Repo): PawnApi {
     },
 
     getSettings: async () => repo.settings(),
-    saveSettings: async (s) => repo.saveSettings(s),
+    saveSettings: async (s) => {
+      repo.saveSettings(s);
+      win?.webContents.setZoomFactor(s.zoom);
+    },
     copyText: async (text) => clipboard.writeText(text),
     openDataFolder: async () => {
       await shell.openPath(dataDir);
@@ -148,7 +152,7 @@ app.whenReady().then(async () => {
   });
 
   Menu.setApplicationMenu(null);
-  win = createWindow();
+  win = createWindow(repo.settings().zoom);
   updater.start(win);
 });
 

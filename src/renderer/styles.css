@@ -46,7 +46,7 @@ h1, h2, h3 { margin: 0; }
 
 /* ---------- 머리 ---------- */
 .header { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
-.header-inner { max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.header-inner { max-width: 1400px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
 .brand { display: flex; flex-direction: column; gap: 2px; }
 .brand-name { font-size: 26px; font-weight: 900; }
 .brand-date { font-size: 18px; color: var(--muted); }
@@ -57,11 +57,11 @@ h1, h2, h3 { margin: 0; }
 .tab.icon-only { padding: 0 16px; }
 
 .update-band { background: var(--amber-soft); border-bottom: 2px solid var(--amber-line); }
-.update-inner { max-width: 1200px; margin: 0 auto; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.update-inner { max-width: 1400px; margin: 0 auto; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .update-text { font-size: 20px; font-weight: 700; color: var(--amber-ink); }
 
 /* ---------- 본문 ---------- */
-.main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 64px; display: flex; flex-direction: column; gap: 24px; }
+.main { max-width: 1400px; margin: 0 auto; padding: 24px 24px 64px; display: flex; flex-direction: column; gap: 20px; }
 .main.narrow { max-width: 960px; }
 .page-title { font-size: 34px; font-weight: 900; }
 .section-title { font-size: 26px; font-weight: 900; }
@@ -128,14 +128,14 @@ h1, h2, h3 { margin: 0; }
 .step-no { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 22px; flex: none; }
 
 /* ---------- 오늘 할 일 ---------- */
-.hero { background: var(--blue); border-radius: 20px; padding: 28px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; color: #fff; }
+.hero { background: var(--blue); border-radius: 20px; padding: 20px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; color: #fff; }
 .hero-label { font-size: 24px; font-weight: 500; }
-.hero-count { font-size: 64px; font-weight: 900; line-height: 1.1; }
+.hero-count { font-size: 56px; font-weight: 900; line-height: 1.1; }
 .hero-count small { font-size: 26px; font-weight: 500; }
 .hero-note { font-size: 21px; max-width: 460px; }
 .hero-done { display: flex; align-items: center; gap: 16px; font-size: 36px; font-weight: 900; }
 
-.due-card { background: #fff; border: 3px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.due-card { background: #fff; border: 3px solid var(--line); border-radius: 16px; padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; }
 .due-card.late { border-color: var(--orange-line); padding: 20px 24px; }
 .amount { font-size: 36px; font-weight: 900; }
 .message { background: var(--surface-2); border: 1px dashed #9CA3AF; border-radius: 12px; padding: 14px 16px; font-size: 19px; color: #1F2937; white-space: pre-wrap; }
@@ -176,6 +176,13 @@ h1, h2, h3 { margin: 0; }
 .stat span:last-child { font-size: 17px; }
 .stat.green { background: var(--green-soft); color: var(--green-dark); }
 .stat.orange { background: var(--orange-soft); color: #7C2D12; }
+.status-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 18px; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+.status-now { display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid var(--line-2); font-size: 19px; font-weight: 700; color: var(--muted); }
+.action-btn { height: 52px; padding: 0 22px; border: 2px solid var(--field); border-radius: 12px; background: #fff; font-family: inherit; font-size: 20px; font-weight: 900; cursor: pointer; white-space: nowrap; }
+.action-btn.green { border-color: var(--green); color: var(--green-dark); }
+.action-btn.green:hover { background: #F0FDF4; }
+.action-btn.orange { border-color: var(--orange); color: var(--orange); }
+.action-btn.orange:hover { background: var(--orange-softer); }
 .edit-box { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 2px solid var(--green); border-radius: 12px; background: #F0FDF4; }
 
 .photos { display: flex; flex-wrap: wrap; gap: 16px; }
@@ -208,7 +215,7 @@ h1, h2, h3 { margin: 0; }
 .toast.error { background: var(--orange); color: #fff; }
 
 /* ---------- 체크 칸 (발송 / 수납) ---------- */
-.check-toggle { flex: 1 1 300px; display: flex; align-items: center; gap: 16px; min-height: 76px; padding: 10px 20px; border: 3px solid var(--line); border-radius: 14px; background: #fff; text-align: left; font-family: inherit; cursor: pointer; color: var(--ink); }
+.check-toggle { flex: 1 1 260px; display: flex; align-items: center; gap: 16px; min-height: 68px; padding: 10px 20px; border: 3px solid var(--line); border-radius: 14px; background: #fff; text-align: left; font-family: inherit; cursor: pointer; color: var(--ink); }
 .check-toggle:hover { background: var(--surface-2); }
 .check-toggle.compact { flex: 0 0 auto; gap: 12px; min-height: 56px; padding: 6px 16px 6px 10px; border-radius: 12px; }
 .check-box { flex: none; width: 40px; height: 40px; border-radius: 10px; border: 3px solid var(--field); background: #fff; display: flex; align-items: center; justify-content: center; color: #fff; }
@@ -220,7 +227,7 @@ h1, h2, h3 { margin: 0; }
 .check-toggle.compact .check-title { font-size: 19px; }
 .check-toggle.compact .check-sub { font-size: 16px; }
 .check-toggle.checked .check-title { color: var(--field); text-decoration: line-through; }
-.check-row { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line-2); }
+.check-row { flex: 1 1 540px; display: flex; flex-wrap: wrap; gap: 12px; }
 
 /* ---------- 오늘 진행 막대 / 상태 표시 ---------- */
 .progress { display: flex; flex-direction: column; gap: 6px; }

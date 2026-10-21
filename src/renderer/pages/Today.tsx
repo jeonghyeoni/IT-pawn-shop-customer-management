@@ -75,34 +75,29 @@ export function Today({ settings }: { settings: Settings }) {
 
         {pending.map((i) => (
           <article key={k(i)} className="due-card">
-            <div className="row between top">
-              <div className="col">
-                <div className="row">
-                  <button type="button" className="name-link big-name" onClick={() => openCustomer(i.customerId)}>{i.name}</button>
-                  <span className="big-phone">{i.phone}</span>
-                  {i.sameName && <span className="badge warn">동명이인 · 전화번호 확인</span>}
-                </div>
-                <div className="muted" style={{ fontSize: 19 }}>
-                  대부금액 {won(i.principal)} · {rateText(i.rateType, i.rate)} · 계약일 {i.contractDate.replace(/-/g, '.')}
-                </div>
-                <div className="muted" style={{ fontSize: 19 }}>
-                  담보물: {i.collateral || '—'} · <button type="button" className="name-link" style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 19 }} onClick={() => openContract(i.contractId)}>계약 상세</button>
-                </div>
+            <div className="row between">
+              <div className="row">
+                <button type="button" className="name-link big-name" onClick={() => openCustomer(i.customerId)}>{i.name}</button>
+                <span className="big-phone">{i.phone}</span>
+                {i.sameName && <span className="badge warn">동명이인 · 전화번호 확인</span>}
               </div>
-              <div className="col" style={{ alignItems: 'flex-end', gap: 2 }}>
+              <div className="row">
                 <span className="badge round">{i.period}회차 이자</span>
                 <span className="amount">{won(i.amount)}</span>
               </div>
             </div>
+            <div className="muted" style={{ fontSize: 19, marginTop: -8 }}>
+              대부금액 {won(i.principal)} · {rateText(i.rateType, i.rate)} · 계약일 {i.contractDate.replace(/-/g, '.')} · 담보물: {i.collateral || '—'} · <button type="button" className="name-link" style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 19 }} onClick={() => openContract(i.contractId)}>계약 상세</button>
+            </div>
             <div className="row" style={{ alignItems: 'stretch' }}>
-              <div className="message" style={{ flex: '1 1 520px' }}>{renderMessage(settings, i)}</div>
+              <div className="message" style={{ flex: '1 1 420px' }}>{renderMessage(settings, i)}</div>
               <button type="button" className="btn outline" style={{ height: 'auto', minHeight: 60 }} onClick={() => copy(i)}>
                 <CopyIcon />{copied === k(i) ? '복사됨' : '문구 복사'}
               </button>
-            </div>
-            <div className="check-row">
-              <SentCheck sent={false} when="" onClick={() => toggleSent(i)} />
-              <PaidCheck paidDate={i.paidDate} onClick={() => togglePaid(i)} />
+              <div className="check-row">
+                <SentCheck sent={false} when="" onClick={() => toggleSent(i)} />
+                <PaidCheck paidDate={i.paidDate} onClick={() => togglePaid(i)} />
+              </div>
             </div>
           </article>
         ))}

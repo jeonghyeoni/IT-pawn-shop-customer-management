@@ -1,24 +1,35 @@
 import { useEffect, useState } from 'react';
-import { DEFAULT_TEMPLATE, renderMessage } from '../../shared/format';
+import { DEFAULT_TEMPLATE, ZOOMS, renderMessage } from '../../shared/format';
 import type { DueItem, Settings as SettingsT } from '../../shared/types';
 import { api } from '../api';
 import { useApp } from '../app-context';
 import { DownloadIcon } from '../components/Icons';
+
+const ZOOM_LABELS = ['작게', '보통 (기본)', '크게', '아주 크게'];
 
 const SAMPLE = { name: '홍길동', amount: 30000, dueDate: '2026-10-21', period: 4 } as DueItem;
 
 export function Settings({ settings, onSaved }: { settings: SettingsT; onSaved: (s: SettingsT) => void }) {
   const { toast, fail } = useApp();
   const [form, setForm] = useState(settings);
+  const [zoom, setZoom] = useState(settings.zoom);
   const [info, setInfo] = useState<{ version: string; dataDir: string } | null>(null);
 
   useEffect(() => { api.getAppInfo().then(setInfo).catch(fail); }, [fail]);
 
   const save = async () => {
     try {
-      await api.saveSettings(form);
-      onSaved(form);
+      await api.saveSettings({ ...form, zoom });
+      onSaved({ ...form, zoom });
       toast('설정을 저장했습니다.');
+    } catch (e) { fail(e); }
+  };
+  // 화면 크기는 누르는 즉시 바뀌고 저장된다 (저장된 업체 정보는 그대로)
+  const changeZoom = async (z: number) => {
+    try {
+      await api.saveSettings({ ...settings, zoom: z });
+      setZoom(z);
+      onSaved({ ...settings, zoom: z });
     } catch (e) { fail(e); }
   };
   const run = async (fn: () => Promise<string | null | void>, ok: (r: string) => string) => {
@@ -58,6 +69,18 @@ export function Settings({ settings, onSaved }: { settings: SettingsT; onSaved: 
         <div className="row">
           <button type="button" className="btn primary" onClick={save}>저장</button>
           <button type="button" className="btn plain md" onClick={() => setForm({ ...form, template: DEFAULT_TEMPLATE })}>기본 문구로 복원</button>
+        </div>
+      </section>
+
+      <section className="card" style={{ padding: 28 }}>
+        <h2 className="section-title">화면 크기</h2>
+        <div style={{ color: 'var(--ink-2)' }}>글자와 버튼 크기를 고릅니다. 누르면 바로 바뀝니다.</div>
+        <div className="segmented" role="group" aria-label="화면 크기" style={{ alignSelf: 'flex-start' }}>
+          {ZOOMS.map((z, i) => (
+            <button key={z} type="button" aria-pressed={zoom === z} onClick={() => changeZoom(z)}>
+              {ZOOM_LABELS[i]} ({Math.round(z * 100)}%)
+            </button>
+          ))}
         </div>
       </section>
 

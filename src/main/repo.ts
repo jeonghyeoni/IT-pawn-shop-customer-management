@@ -1,5 +1,5 @@
 import type { CustomerInput, CustomerSaveResult } from '../shared/api';
-import { DEFAULT_TEMPLATE, digitsOnly, formatPhone, isValidPhone } from '../shared/format';
+import { DEFAULT_TEMPLATE, DEFAULT_ZOOM, ZOOMS, digitsOnly, formatPhone, isValidPhone } from '../shared/format';
 import {
   buildDashboard, buildPeriods, buildSentList, dueDate, monthlyInterest, nextLabel, periodTotals, periodsUntil,
   type ScheduleData
@@ -302,7 +302,13 @@ export class Repo {
 
   settings(): Settings {
     const map = new Map(this.store.all<{ key: string; value: string }>('SELECT * FROM settings').map((r) => [r.key, r.value]));
-    return { shopName: map.get('shopName') ?? '', account: map.get('account') ?? '', template: map.get('template') ?? DEFAULT_TEMPLATE };
+    const zoom = Number(map.get('zoom'));
+    return {
+      shopName: map.get('shopName') ?? '',
+      account: map.get('account') ?? '',
+      template: map.get('template') ?? DEFAULT_TEMPLATE,
+      zoom: ZOOMS.includes(zoom) ? zoom : DEFAULT_ZOOM
+    };
   }
 
   saveSettings(s: Settings): void {

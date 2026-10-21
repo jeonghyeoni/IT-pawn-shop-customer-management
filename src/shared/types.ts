@@ -63,6 +63,8 @@ export interface Settings {
   shopName: string;
   account: string;
   template: string;
+  /** 화면 배율 (1 = 100%) */
+  zoom: number;
 }
 
 /** 이자 문자 한 건 (오늘 보낼 것 / 못 보낸 것 / 보낸 것 모두 같은 모양). */
