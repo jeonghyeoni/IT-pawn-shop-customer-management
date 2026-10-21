@@ -1,10 +1,10 @@
+import { useState } from 'react';
 import { monthDay, rateText, renderMessage, won } from '../../shared/format';
 import type { DueItem, Settings } from '../../shared/types';
 import { api } from '../api';
 import { useApp, useLoad } from '../app-context';
-import { useState } from 'react';
 import { AlertIcon, CheckIcon, CopyIcon, NextIcon } from '../components/Icons';
-import { PaidButton, SentButton } from '../components/ui';
+import { PaidCheck, SentCheck } from '../components/ui';
 
 export function Today({ settings }: { settings: Settings }) {
   const { go, fail, toast } = useApp();
@@ -21,39 +21,59 @@ export function Today({ settings }: { settings: Settings }) {
       toast('고지 문구를 복사했습니다. 문자 앱에 붙여넣어 발송하세요.');
     } catch (e) { fail(e); }
   };
-  const toggleSent = (i: DueItem, sent: boolean) => api.markSent(i.contractId, i.period, sent).then(reload).catch(fail);
+  const toggleSent = (i: DueItem) => api.markSent(i.contractId, i.period, !i.sentAt).then(reload).catch(fail);
   const togglePaid = (i: DueItem) =>
     api.setPaid(i.contractId, i.period, i.paid ? null : data.today).then(reload).catch(fail);
   const openContract = (id: number) => go({ name: 'contract', id });
   const openCustomer = (id: number) => go({ name: 'customer', id });
+  const when = (i: DueItem) => sentWhen(i.sentAt, data.today);
 
-  const remaining = data.dueToday.length;
-  const totalToday = data.todayTotal;
+  const pending = data.dueToday.filter((i) => !i.sentAt);
+  // 발송 완료는 방금 보낸 것부터
+  const done = data.dueToday.filter((i) => i.sentAt).sort((a, b) => (a.sentAt! < b.sentAt! ? 1 : -1));
+  const total = data.dueToday.length;
+  const paidCount = data.dueToday.filter((i) => i.paid).length;
+  const pct = (n: number) => `${total ? Math.round((n / total) * 100) : 0}%`;
 
   return (
     <main className="main">
       <section aria-label="오늘 요약" className="hero">
-        {remaining > 0 ? (
+        {total === 0 ? (
+          <div className="hero-done"><CheckIcon size={56} />오늘 이자 고지 대상이 없습니다</div>
+        ) : (
           <>
             <div className="col">
-              <div className="hero-label">오늘 이자 고지 대상</div>
-              <div className="hero-count">{remaining}건 <small>남음{totalToday > remaining ? ` (전체 ${totalToday}건)` : ''}</small></div>
+              <div className="hero-label">오늘 이자 고지 · 발송 대기</div>
+              {pending.length > 0 ? (
+                <div className="hero-count">{pending.length}건 <small>/ 전체 {total}건</small></div>
+              ) : (
+                <div className="hero-count row" style={{ gap: 14 }}><CheckIcon size={60} />완료 <small>전체 {total}건 발송</small></div>
+              )}
             </div>
-            <div className="hero-note">
-              고지 문자를 발송한 후 <b>[발송]</b> 버튼을 눌러 주세요. 발송 처리된 건은 아래 ‘최근 발송 내역’으로 이동합니다.
+            <div className="col" style={{ flex: '0 1 460px', gap: 12 }}>
+              <div className="progress">
+                <div className="progress-head"><span>문자 발송</span><span>{done.length} / {total}</span></div>
+                <div className="progress-bar"><div style={{ width: pct(done.length) }} /></div>
+              </div>
+              <div className="progress">
+                <div className="progress-head"><span>이자 수납</span><span>{paidCount} / {total}</span></div>
+                <div className="progress-bar paid"><div style={{ width: pct(paidCount) }} /></div>
+              </div>
             </div>
           </>
-        ) : (
-          <div className="hero-done">
-            <CheckIcon size={56} />{totalToday > 0 ? '오늘 이자 고지를 모두 발송했습니다' : '오늘 이자 고지 대상이 없습니다'}
-          </div>
         )}
       </section>
 
       <section aria-labelledby="today-h" className="col" style={{ gap: 16 }}>
         <h2 id="today-h" style={{ fontSize: 28, fontWeight: 900 }}>오늘 이자 고지</h2>
-        {remaining === 0 && <div className="card muted" style={{ fontSize: 21 }}>남은 고지 대상이 없습니다.</div>}
-        {data.dueToday.map((i) => (
+        {total > 0 && (
+          <div style={{ fontSize: 19, color: 'var(--ink-2)' }}>
+            문자를 보낸 뒤 <b>[문자 발송 확인]</b> 칸을 눌러 체크하세요. 입금되면 <b>[이자 수납 확인]</b> 칸을 체크합니다. 잘못 체크했으면 한 번 더 누르면 해제됩니다.
+          </div>
+        )}
+        {total === 0 && <div className="card muted" style={{ fontSize: 21 }}>오늘 납부일인 계약이 없습니다.</div>}
+
+        {pending.map((i) => (
           <article key={k(i)} className="due-card">
             <div className="row between top">
               <div className="col">
@@ -74,13 +94,36 @@ export function Today({ settings }: { settings: Settings }) {
                 <span className="amount">{won(i.amount)}</span>
               </div>
             </div>
-            <div className="message">{renderMessage(settings, i)}</div>
-            <div className="row">
-              <button type="button" className="btn outline" onClick={() => copy(i)}>
+            <div className="row" style={{ alignItems: 'stretch' }}>
+              <div className="message" style={{ flex: '1 1 520px' }}>{renderMessage(settings, i)}</div>
+              <button type="button" className="btn outline" style={{ height: 'auto', minHeight: 60 }} onClick={() => copy(i)}>
                 <CopyIcon />{copied === k(i) ? '복사됨' : '문구 복사'}
               </button>
-              <SentButton sent={false} onClick={() => toggleSent(i, true)} />
-              <PaidButton paid={i.paid} onClick={() => togglePaid(i)} />
+            </div>
+            <div className="check-row">
+              <SentCheck sent={false} when="" onClick={() => toggleSent(i)} />
+              <PaidCheck paidDate={i.paidDate} onClick={() => togglePaid(i)} />
+            </div>
+          </article>
+        ))}
+
+        {done.length > 0 && <div className="done-divider"><CheckIcon size={26} />발송 완료 {done.length}건</div>}
+        {done.map((i) => (
+          <article key={k(i)} className="card" style={{ padding: '18px 24px', gap: 14 }}>
+            <div className="row between">
+              <div className="row">
+                <span className="chip solid"><CheckIcon size={18} />{i.paid ? '발송·수납 완료' : '발송 완료'}</span>
+                <button type="button" className="name-link" style={{ fontSize: 26, fontWeight: 900 }} onClick={() => openCustomer(i.customerId)}>{i.name}</button>
+                <span style={{ fontSize: 24, fontWeight: 700 }}>{i.phone}</span>
+              </div>
+              <div className="row">
+                <span className="badge round">{i.period}회차 이자</span>
+                <span style={{ fontSize: 28, fontWeight: 900 }}>{won(i.amount)}</span>
+              </div>
+            </div>
+            <div className="row" style={{ gap: 12 }}>
+              <SentCheck sent when={when(i)} onClick={() => toggleSent(i)} />
+              <PaidCheck paidDate={i.paidDate} onClick={() => togglePaid(i)} />
             </div>
           </article>
         ))}
@@ -105,7 +148,7 @@ export function Today({ settings }: { settings: Settings }) {
                   <button type="button" className="btn outline" onClick={() => copy(i)}>
                     <CopyIcon />{copied === k(i) ? '복사됨' : '문구 복사'}
                   </button>
-                  <SentButton sent={false} onClick={() => toggleSent(i, true)} />
+                  <SentCheck compact sent={false} when="" onClick={() => toggleSent(i)} />
                 </div>
               </div>
             </article>
@@ -126,16 +169,16 @@ export function Today({ settings }: { settings: Settings }) {
             <div className="col" style={{ gap: 2 }}>
               <span style={{ fontSize: 23, fontWeight: 900 }}>{i.name} <span style={{ fontWeight: 700 }}>{i.phone}</span></span>
               <span style={{ fontSize: 19, color: 'var(--ink-2)' }}>
-                <b>{sentWhen(i.sentAt, data.today)}</b> 발송 · {i.period}회차 이자 {won(i.amount)}
+                <b>{when(i)}</b> 발송 · {i.period}회차 이자 {won(i.amount)}
               </span>
             </div>
             <div className="row" style={{ gap: 10 }}>
-              <SentButton sent size="md" onClick={() => toggleSent(i, false)} />
-              <PaidButton paid={i.paid} size="md" onClick={() => togglePaid(i)} />
+              <span className="chip green"><CheckIcon size={20} />발송 완료</span>
+              <span className={`chip ${i.paid ? 'green' : 'orange'}`}>{i.paid ? '수납 완료' : '미수납'}</span>
             </div>
           </div>
         ))}
-        <div className="hint">[발송 완료]를 다시 누르면 발송 처리가 취소됩니다.</div>
+        <div className="hint">발송·수납 체크와 해제는 위 ‘오늘 이자 고지’ 카드나 [전체 보기]에서 할 수 있습니다.</div>
       </section>
 
       <div className="split">

@@ -3,7 +3,7 @@ import { monthDay, won } from '../../shared/format';
 import type { DueItem } from '../../shared/types';
 import { api } from '../api';
 import { useApp } from '../app-context';
-import { BackButton, PaidButton, SentButton } from '../components/ui';
+import { BackButton, PaidCheck, SentCheck } from '../components/ui';
 
 /** 보낸 이자 문자 전체. 보냄을 취소해도 이 화면에서는 줄이 그대로 남아 다시 누를 수 있다. */
 export function SentHistory({ today }: { today: string }) {
@@ -20,8 +20,10 @@ export function SentHistory({ today }: { today: string }) {
 
   const toggleSent = (i: DueItem & { sent: boolean }) =>
     api.markSent(i.contractId, i.period, !i.sent).then(() => update(i, { sent: !i.sent })).catch(fail);
-  const togglePaid = (i: DueItem) =>
-    api.setPaid(i.contractId, i.period, i.paid ? null : today).then(() => update(i, { paid: !i.paid })).catch(fail);
+  const togglePaid = (i: DueItem) => {
+    const paidDate = i.paid ? null : today;
+    api.setPaid(i.contractId, i.period, paidDate).then(() => update(i, { paid: !i.paid, paidDate })).catch(fail);
+  };
 
   const shown = (rows ?? []).filter((r) => filter === 'all' || !r.paid);
 
@@ -36,6 +38,7 @@ export function SentHistory({ today }: { today: string }) {
         </div>
         <div style={{ fontSize: 22, fontWeight: 900 }}>{shown.length}건</div>
       </div>
+      <div style={{ fontSize: 18, color: 'var(--ink-2)' }}>칸을 눌러 <b>체크</b>하고, 잘못 체크했으면 한 번 더 눌러 <b>해제</b>하세요.</div>
       <section aria-label="발송 내역" className="card" style={{ padding: 16, gap: 10 }}>
         {shown.map((r) => (
           <div key={`${r.contractId}:${r.period}`} className={`list-row ${r.sent ? '' : 'unsent'}`} style={{ background: r.sent ? '#fff' : undefined }}>
@@ -51,14 +54,13 @@ export function SentHistory({ today }: { today: string }) {
               </div>
             </div>
             <div className="row" style={{ gap: 10 }}>
-              <SentButton sent={r.sent} size="md" onClick={() => toggleSent(r)} />
-              <PaidButton paid={r.paid} size="md" onClick={() => togglePaid(r)} />
+              <SentCheck compact sent={r.sent} when={r.sentAt ? monthDay(r.sentAt.slice(0, 10)) : ''} onClick={() => toggleSent(r)} />
+              <PaidCheck compact paidDate={r.paidDate} onClick={() => togglePaid(r)} />
             </div>
           </div>
         ))}
         {rows && shown.length === 0 && <div className="empty">내역이 없습니다.</div>}
       </section>
-      <div className="hint">버튼을 다시 누르면 처리가 취소됩니다.</div>
     </main>
   );
 }

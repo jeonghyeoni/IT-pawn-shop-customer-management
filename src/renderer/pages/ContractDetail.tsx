@@ -3,8 +3,8 @@ import { longDate, monthDay, rateText, won } from '../../shared/format';
 import type { ContractStatus, PeriodRow } from '../../shared/types';
 import { api } from '../api';
 import { useApp, useLoad } from '../app-context';
-import { CashIcon, CheckIcon, PencilIcon, UserIcon } from '../components/Icons';
-import { BackButton, PhotoGrid, SentButton, StatusBadge } from '../components/ui';
+import { PencilIcon, UserIcon } from '../components/Icons';
+import { BackButton, PaidCheck, PhotoGrid, SentCheck, StatusBadge } from '../components/ui';
 
 export function ContractDetail({ id, today }: { id: number; today: string }) {
   const { go, fail, confirm, toast } = useApp();
@@ -16,17 +16,10 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
   const active = c.status === 'active';
 
   const toggleSent = (r: PeriodRow) => api.markSent(c.id, r.period, !r.sent).then(reload).catch(fail);
-  const payButton = (r: PeriodRow) => {
-    if (r.paidDate) setEditing({ period: r.period, date: r.paidDate });
-    else api.setPaid(c.id, r.period, today).then(reload).catch(fail);
-  };
+  const togglePaid = (r: PeriodRow) => api.setPaid(c.id, r.period, r.paidDate ? null : today).then(reload).catch(fail);
   const saveDate = () => {
     if (!editing) return;
     api.setPaid(c.id, editing.period, editing.date || today).then(() => { setEditing(null); return reload(); }).catch(fail);
-  };
-  const cancelPaid = () => {
-    if (!editing) return;
-    api.setPaid(c.id, editing.period, null).then(() => { setEditing(null); return reload(); }).catch(fail);
   };
 
   const setStatus = async (status: ContractStatus) => {
@@ -111,34 +104,42 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
             <div className="stat green"><span>수납 이자</span><strong>{won(totals.paid)}</strong><span>{totals.paidCount}회</span></div>
             <div className={`stat ${totals.dueCount > 0 ? 'orange' : ''}`}><span>미수 이자</span><strong>{won(totals.due)}</strong><span>{totals.dueCount}회</span></div>
           </div>
+          <div style={{ fontSize: 18, color: 'var(--ink-2)' }}>
+            칸을 눌러 <b>체크</b>하고, 잘못 체크했으면 한 번 더 눌러 <b>해제</b>하세요. 수납일은 [수납일 수정]으로 바꿀 수 있습니다.
+          </div>
           <div style={{ overflowX: 'auto' }}>
-            <table className="table compact" style={{ minWidth: 600 }}>
+            <table className="table compact" style={{ minWidth: 700 }}>
               <thead>
-                <tr><th scope="col">회차</th><th scope="col">납부일</th><th scope="col">고지</th><th scope="col">수납</th></tr>
+                <tr><th scope="col">회차</th><th scope="col">납부일</th><th scope="col">문자 발송</th><th scope="col">이자 수납</th></tr>
               </thead>
               <tbody>
                 {periods.length === 0 && <tr><td colSpan={4} className="muted">아직 도래한 납부일이 없습니다.</td></tr>}
                 {periods.map((r) => (
                   <tr key={r.period} className={r.isToday ? 'today' : ''}>
-                    <td style={{ fontWeight: 700 }}>{r.period}회차</td>
-                    <td className="nowrap">{monthDay(r.dueDate)}{r.isToday ? ' (오늘)' : ''}{r.dueDate.slice(0, 4) !== today.slice(0, 4) ? ` ${r.dueDate.slice(0, 4)}` : ''}</td>
-                    <td>{r.future ? <span className="muted" style={{ fontWeight: 700 }}>예정</span> : <SentButton sent={r.sent} size="sm" onClick={() => toggleSent(r)} />}</td>
-                    <td>
+                    <td className="nowrap" style={{ fontWeight: 700, verticalAlign: 'middle' }}>{r.period}회차</td>
+                    <td className="nowrap" style={{ verticalAlign: 'middle' }}>{monthDay(r.dueDate)}{r.isToday ? ' (오늘)' : ''}{r.dueDate.slice(0, 4) !== today.slice(0, 4) ? ` ${r.dueDate.slice(0, 4)}` : ''}</td>
+                    <td style={{ verticalAlign: 'middle' }}>
+                      {r.future ? <span className="muted" style={{ fontWeight: 700 }}>예정</span>
+                        : <SentCheck compact sent={r.sent} when={r.sentAt ? monthDay(r.sentAt.slice(0, 10)) : ''} onClick={() => toggleSent(r)} />}
+                    </td>
+                    <td style={{ verticalAlign: 'middle' }}>
                       {r.future ? <span className="muted">—</span> : editing?.period === r.period ? (
                         <div className="edit-box">
                           <label htmlFor="pd" style={{ fontSize: 18, fontWeight: 700, color: 'var(--green-dark)' }}>수납일</label>
                           <input id="pd" type="date" className="input sm" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} />
                           <div className="row" style={{ gap: 8 }}>
-                            <button type="button" className="btn success sm" onClick={saveDate}>수납일 저장</button>
-                            <button type="button" className="btn danger-outline sm" onClick={cancelPaid}>수납 취소</button>
+                            <button type="button" className="btn success sm" onClick={saveDate}>저장</button>
                             <button type="button" className="btn plain sm" onClick={() => setEditing(null)}>닫기</button>
                           </div>
                         </div>
                       ) : (
-                        <button type="button" className={`btn sm ${r.paidDate ? 'success' : 'outline-success'}`} aria-pressed={!!r.paidDate} onClick={() => payButton(r)}>
-                          {r.paidDate ? <CheckIcon size={20} /> : <CashIcon size={20} />}
-                          {r.paidDate ? `${monthDay(r.paidDate)} 수납` : '수납'}
-                        </button>
+                        <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+                          <PaidCheck compact paidDate={r.paidDate} onClick={() => togglePaid(r)} />
+                          {r.paidDate && (
+                            <button type="button" className="name-link nowrap" style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 18, textDecoration: 'underline', minHeight: 44 }}
+                              onClick={() => setEditing({ period: r.period, date: r.paidDate! })}>수납일 수정</button>
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -146,7 +147,6 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
               </tbody>
             </table>
           </div>
-          <div className="hint">고지 버튼을 다시 누르면 발송 처리가 취소됩니다. 수납일을 수정하거나 취소하려면 초록색 수납 버튼을 누르세요.</div>
         </section>
       </div>
     </main>

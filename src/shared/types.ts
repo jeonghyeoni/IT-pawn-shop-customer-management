@@ -81,6 +81,7 @@ export interface DueItem {
   contractDate: ISODate;
   collateral: string;
   paid: boolean;
+  paidDate: ISODate | null;
   daysLate: number;
   sentAt: string | null;
 }
@@ -96,9 +97,8 @@ export interface MaturityItem {
 
 export interface Dashboard {
   today: ISODate;
+  /** 오늘이 납부일인 회차 전부 (발송한 것 포함, sentAt 으로 구분) */
   dueToday: DueItem[];
-  /** 오늘 고지일인 회차 수 (보낸 것 포함) */
-  todayTotal: number;
   late: DueItem[];
   unpaid: DueItem[];
   maturity: MaturityItem[];
@@ -135,6 +135,7 @@ export interface PeriodRow {
   future: boolean;
   isToday: boolean;
   sent: boolean;
+  sentAt: string | null;
   paidDate: ISODate | null;
   amount: number;
 }
