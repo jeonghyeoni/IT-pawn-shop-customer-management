@@ -132,7 +132,7 @@ describe('계약 목록의 다음 문자', () => {
   it('오늘 / 못 보냄 / 다음 날짜 / 만기', () => {
     expect(nextLabel(contract({}), new Set([1, 2, 3]), today)).toEqual({ label: '오늘', kind: 'today' });
     expect(nextLabel(contract({}), new Set([1, 2, 3, 4]), today)).toEqual({ label: '11/21', kind: 'normal' });
-    expect(nextLabel(contract({}), new Set([1, 2]), today)).toEqual({ label: '09/21 못 보냄', kind: 'late' });
+    expect(nextLabel(contract({}), new Set([1, 2]), today)).toEqual({ label: '09/21 미발송', kind: 'late' });
     expect(nextLabel(contract({ contractDate: '2026-10-05', maturityDate: '2026-10-25' }), new Set(), today))
       .toEqual({ label: '11/05 · 만기', kind: 'normal' });
     expect(nextLabel(contract({ status: 'forfeited' }), new Set(), today)).toEqual({ label: '—', kind: 'none' });

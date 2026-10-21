@@ -1,7 +1,7 @@
 {
   "name": "pawn-shop-manager",
   "productName": "전당포 관리",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "전당포 회원·계약 관리 프로그램",
   "author": "jeonghyeoni",
   "license": "UNLICENSED",

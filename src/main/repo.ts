@@ -42,12 +42,12 @@ function checkDate(value: string | null, label: string, required: boolean): void
 }
 
 function checkContract(input: ContractInput): void {
-  checkDate(input.contractDate, '계약한 날', true);
+  checkDate(input.contractDate, '계약일', true);
   checkDate(input.maturityDate, '만기일', false);
-  if (!Number.isInteger(input.principal) || input.principal <= 0) throw new Error('빌려준 돈을 입력해 주세요.');
+  if (!Number.isInteger(input.principal) || input.principal <= 0) throw new Error('대부금액을 입력해 주세요.');
   if (!(input.rate >= 0) || input.rate > 1000) throw new Error('이자율을 확인해 주세요.');
-  if (input.rateType !== 'month' && input.rateType !== 'year') throw new Error('이자 기준을 골라 주세요.');
-  if (input.maturityDate && input.maturityDate < input.contractDate) throw new Error('만기일이 계약한 날보다 앞입니다.');
+  if (input.rateType !== 'month' && input.rateType !== 'year') throw new Error('이자율 기준을 선택해 주세요.');
+  if (input.maturityDate && input.maturityDate < input.contractDate) throw new Error('만기일이 계약일보다 이전입니다.');
 }
 
 export class Repo {
@@ -88,7 +88,7 @@ export class Repo {
 
   private customer(id: number): Customer {
     const r = this.store.get<CustomerRecord>('SELECT * FROM customers WHERE id = ?', [id]);
-    if (!r) throw new Error('회원을 찾을 수 없습니다.');
+    if (!r) throw new Error('채무자 정보를 찾을 수 없습니다.');
     return toCustomer(r);
   }
 
@@ -115,7 +115,7 @@ export class Repo {
 
   setPaid(contractId: number, period: number, paidDate: ISODate | null): void {
     const c = this.contract(contractId);
-    checkDate(paidDate, '받은 날짜', false);
+    checkDate(paidDate, '수납일', false);
     this.store.tx(() => {
       if (paidDate) {
         const existing = this.payments('WHERE contract_id = ? AND period = ?', [contractId, period])[0];
@@ -165,7 +165,7 @@ export class Repo {
     if (!isValidPhone(input.phone)) return { ok: false, message: '전화번호를 정확히 입력해 주세요.' };
     const phone = formatPhone(input.phone);
     const dup = this.customers().find((c) => c.id !== selfId && c.name === name && digitsOnly(c.phone) === digitsOnly(phone));
-    if (dup) return { ok: false, message: '같은 이름과 전화번호의 회원이 이미 있습니다.', existing: dup };
+    if (dup) return { ok: false, message: '이름과 전화번호가 같은 채무자가 이미 등록되어 있습니다.', existing: dup };
     return { name, phone, memo: input.memo.trim() };
   }
 

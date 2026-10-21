@@ -88,7 +88,7 @@ function makeApi(repo: Repo): PawnApi {
 
     pickPhotos: async () => {
       const res = await dialog.showOpenDialog(win!, {
-        title: '사진 고르기',
+        title: '사진 선택',
         properties: ['openFile', 'multiSelections'],
         filters: [{ name: '사진', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'] }]
       });
@@ -107,7 +107,7 @@ function makeApi(repo: Repo): PawnApi {
       return file;
     },
     exportAll: async () => {
-      const file = await exportDialog(`전체자료_${today()}.xlsx`);
+      const file = await exportDialog(`전체데이터_${today()}.xlsx`);
       if (file) await writeAll(file, repo.exportData(today()));
       return file;
     },

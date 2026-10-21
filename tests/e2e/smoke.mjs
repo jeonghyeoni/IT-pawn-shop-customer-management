@@ -28,7 +28,7 @@ page.on('pageerror', (e) => console.error('[화면 오류]', e));
 page.on('console', (m) => m.type() === 'error' && console.error('[console]', m.text()));
 await page.setViewportSize({ width: 1280, height: 900 });
 // 사진 대신 첫 화면을 찍어서 쓴다
-await page.getByText('오늘 보낼 이자 문자', { exact: true }).waitFor();
+await page.getByText('오늘 이자 고지', { exact: true }).waitFor();
 fs.writeFileSync(png, await page.screenshot());
 const shot = (name) => page.screenshot({ path: path.join(shots, `${name}.png`), fullPage: true });
 const call = (method, ...args) => page.evaluate(([m, a]) => window.pawn.invoke(m, a), [method, args]);
@@ -41,8 +41,8 @@ await app.evaluate(({ dialog }, [img, out]) => {
 }, [png, xlsx]);
 
 try {
-  await page.getByText('오늘은 이자 문자 보낼 사람이 없습니다').waitFor();
-  await page.getByText('새 버전(1.1.0)이 나왔습니다').waitFor();
+  await page.getByText('오늘 이자 고지 대상이 없습니다').waitFor();
+  await page.getByText('새 버전(1.1.0)이 있습니다').waitFor();
   await shot('01-empty');
 
   // ---- 기본 자료 (API로 바로 넣기) ----
@@ -64,56 +64,56 @@ try {
 
   // ---- 새 계약 화면으로 등록 (동명이인 중 두 번째 김영수) ----
   await page.getByRole('button', { name: '새 계약' }).click();
-  await page.getByLabel('이름이나 전화번호를 입력하세요').fill('김영수');
+  await page.getByLabel('채무자 검색 (이름 또는 전화번호)').fill('김영수');
   await page.getByText('010-9876-1234').waitFor();
   assert.equal(await page.locator('.candidate').count(), 2, '동명이인 두 명이 보여야 함');
   await page.locator('.candidate', { hasText: '010-9876-1234' }).getByRole('button').click();
-  await page.getByLabel('계약한 날').fill('2026-08-21');
-  await page.getByLabel('빌려준 돈 (원)').fill('1000000');
+  await page.getByLabel('계약일').fill('2026-08-21');
+  await page.getByLabel('대부금액 (원)').fill('1000000');
   await page.getByLabel('이자율 (%)').fill('20');
   await page.getByText('16,667원').first().waitFor();
-  await page.getByLabel('담보 물품').fill('갤럭시 S24 울트라');
+  await page.getByLabel('담보물 내역').fill('갤럭시 S24 울트라');
   await page.getByRole('button', { name: '사진 추가' }).click();
   await page.locator('.photo img').first().waitFor();
   await shot('02-new-contract');
-  await page.getByRole('button', { name: '계약 저장' }).click();
+  await page.getByRole('button', { name: '계약 등록' }).click();
   await page.getByRole('heading', { name: '갤럭시 S24 울트라' }).waitFor();
   await page.locator('.photo img').first().waitFor();
   await shot('03-contract-detail');
 
   // ---- 오늘 할 일 ----
   await page.getByRole('button', { name: '오늘 할 일' }).click();
-  await page.getByText('오늘 이자 문자 보낼 사람').waitFor();
+  await page.getByText('오늘 이자 고지 대상').waitFor();
   const cards = page.locator('.due-card:not(.late)');
   assert.equal(await cards.count(), 3, '오늘 보낼 문자 3건');
   assert.equal(await page.locator('.due-card.late').count(), 1, '못 보낸 문자 1건 (이민재 3회차)');
   await shot('04-today');
 
-  await cards.first().getByRole('button', { name: '문자 문구 복사' }).click();
+  await cards.first().getByRole('button', { name: '문구 복사' }).click();
   const clip = await app.evaluate(({ clipboard }) => clipboard.readText());
   assert.match(clip, /이자 .+원 납부일/);
 
   const firstName = await cards.first().locator('.big-phone').innerText();
-  await cards.first().getByRole('button', { name: '보냄', exact: true }).click();
+  await cards.first().getByRole('button', { name: '발송', exact: true }).click();
   await page.locator('.list-row', { hasText: firstName }).waitFor();
   assert.equal(await cards.count(), 2, '보낸 건은 오늘 목록에서 빠짐');
-  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '이자 받음' }).click();
-  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '이자 받음 완료' }).waitFor();
+  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '이자 수납' }).click();
+  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '수납 완료' }).waitFor();
   await shot('05-today-after-send');
 
   // 보냄 취소 → 다시 오늘 목록으로
-  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '보냄 완료' }).click();
+  await page.locator('.list-row', { hasText: firstName }).getByRole('button', { name: '발송 완료' }).click();
   await page.waitForFunction(() => document.querySelectorAll('.due-card:not(.late)').length === 3);
-  await cards.first().getByRole('button', { name: '보냄', exact: true }).click();
+  await cards.first().getByRole('button', { name: '발송', exact: true }).click();
   await page.waitForFunction(() => document.querySelectorAll('.due-card:not(.late)').length === 2);
 
   // ---- 계약 목록 / 검색 / 엑셀 ----
   await page.getByRole('button', { name: '계약 목록' }).click();
-  await page.getByText('찾은 계약 4건').waitFor();
-  await page.getByLabel(/무엇으로든 검색/).fill('6789');
-  await page.getByText('찾은 계약 1건').waitFor();
-  await page.getByLabel(/무엇으로든 검색/).fill('');
-  await page.getByText('찾은 계약 4건').waitFor();
+  await page.getByText('검색 결과 4건').waitFor();
+  await page.getByLabel(/검색할 수 있습니다/).fill('6789');
+  await page.getByText('검색 결과 1건').waitFor();
+  await page.getByLabel(/검색할 수 있습니다/).fill('');
+  await page.getByText('검색 결과 4건').waitFor();
   await shot('06-contract-list');
   await page.getByRole('button', { name: '엑셀로 내보내기' }).click();
   await page.getByText('엑셀 파일을 저장했습니다').waitFor();
@@ -123,33 +123,33 @@ try {
   await page.locator('tr', { hasText: '아이폰' }).click();
   await page.getByRole('heading', { name: '아이폰 15 Pro 256GB' }).waitFor();
   const row1 = page.locator('tbody tr').first();
-  await row1.getByRole('button', { name: /받음/ }).click();
-  await page.getByLabel('받은 날짜').fill('2026-07-25');
-  await page.getByRole('button', { name: '날짜 저장' }).click();
-  await row1.getByText('7월 25일 받음').waitFor();
-  await row1.getByRole('button', { name: '보냄 완료' }).click();
-  await row1.getByRole('button', { name: '보냄', exact: true }).waitFor();
-  await row1.getByRole('button', { name: '보냄', exact: true }).click();
+  await row1.getByRole('button', { name: /수납/ }).click();
+  await page.getByLabel('수납일').fill('2026-07-25');
+  await page.getByRole('button', { name: '수납일 저장' }).click();
+  await row1.getByText('7월 25일 수납').waitFor();
+  await row1.getByRole('button', { name: '발송 완료' }).click();
+  await row1.getByRole('button', { name: '발송', exact: true }).waitFor();
+  await row1.getByRole('button', { name: '발송', exact: true }).click();
   await shot('07-contract-detail-periods');
   await page.getByRole('button', { name: '상환 완료 (계약 종료)' }).click();
-  await page.getByRole('button', { name: '예, 상환 완료' }).click();
-  await page.getByRole('button', { name: '진행 중으로 되돌리기' }).waitFor();
+  await page.getByRole('button', { name: '상환 완료 처리' }).click();
+  await page.getByRole('button', { name: '진행 중으로 복원' }).waitFor();
 
   // ---- 회원 ----
   await page.getByRole('button', { name: /김영수 · 010-2345-6789/ }).click();
-  await page.getByText('같은 이름의 회원이 더 있습니다').waitFor();
+  await page.getByText('동명이인이 있습니다').waitFor();
   await page.getByText('김영수님과의 계약').waitFor();
   await shot('08-customer');
-  await page.getByRole('button', { name: '회원 목록' }).click();
-  await page.getByText('회원 4명').waitFor();
+  await page.getByRole('button', { name: '채무자 목록' }).click();
+  await page.getByText('채무자 4명').waitFor();
 
   // ---- 보낸 문자 전체 / 설정 ----
   await page.getByRole('button', { name: '오늘 할 일' }).click();
   await page.getByRole('button', { name: /전체 보기/ }).click();
-  await page.getByRole('heading', { name: '보낸 이자 문자 전체' }).waitFor();
+  await page.getByRole('heading', { name: '이자 고지 발송 내역' }).waitFor();
   await shot('09-sent');
   await page.getByRole('button', { name: '설정' }).click();
-  await page.getByLabel('가게 이름').fill('행복전당포');
+  await page.getByLabel('상호').fill('행복전당포');
   await page.getByLabel('입금 계좌').fill('농협 123-4567-8901');
   await page.getByRole('button', { name: '저장', exact: true }).click();
   await page.getByText('행복전당포 관리').waitFor();

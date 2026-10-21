@@ -28,15 +28,15 @@ export function SentHistory({ today }: { today: string }) {
   return (
     <main className="main" style={{ gap: 20 }}>
       <BackButton />
-      <h1 className="page-title">보낸 이자 문자 전체</h1>
+      <h1 className="page-title">이자 고지 발송 내역</h1>
       <div className="row between">
         <div role="group" aria-label="보기 선택" className="row" style={{ gap: 8 }}>
           <button type="button" className="pill" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>전체</button>
-          <button type="button" className="pill" aria-pressed={filter === 'unpaid'} onClick={() => setFilter('unpaid')}>이자 안 받은 것만</button>
+          <button type="button" className="pill" aria-pressed={filter === 'unpaid'} onClick={() => setFilter('unpaid')}>미수납만</button>
         </div>
         <div style={{ fontSize: 22, fontWeight: 900 }}>{shown.length}건</div>
       </div>
-      <section aria-label="보낸 문자 목록" className="card" style={{ padding: 16, gap: 10 }}>
+      <section aria-label="발송 내역" className="card" style={{ padding: 16, gap: 10 }}>
         {shown.map((r) => (
           <div key={`${r.contractId}:${r.period}`} className={`list-row ${r.sent ? '' : 'unsent'}`} style={{ background: r.sent ? '#fff' : undefined }}>
             <div className="row" style={{ gap: 20 }}>
@@ -46,7 +46,7 @@ export function SentHistory({ today }: { today: string }) {
                 <span style={{ fontSize: 19, color: 'var(--ink-2)' }}>
                   {r.period}회차 이자 {won(r.amount)} ·{' '}
                   <button type="button" className="name-link" style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 19 }}
-                    onClick={() => go({ name: 'contract', id: r.contractId })}>계약 보기</button>
+                    onClick={() => go({ name: 'contract', id: r.contractId })}>계약 상세</button>
                 </span>
               </div>
             </div>
@@ -56,9 +56,9 @@ export function SentHistory({ today }: { today: string }) {
             </div>
           </div>
         ))}
-        {rows && shown.length === 0 && <div className="empty">해당하는 문자가 없습니다.</div>}
+        {rows && shown.length === 0 && <div className="empty">내역이 없습니다.</div>}
       </section>
-      <div className="hint">버튼을 한 번 더 누르면 취소됩니다.</div>
+      <div className="hint">버튼을 다시 누르면 처리가 취소됩니다.</div>
     </main>
   );
 }

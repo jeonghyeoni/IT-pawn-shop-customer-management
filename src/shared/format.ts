@@ -53,18 +53,15 @@ export function rateText(rateType: RateType, rate: number): string {
   return `${rateType === 'month' ? '월' : '연'} ${rate}%`;
 }
 
-export function rateTextLong(rateType: RateType, rate: number): string {
-  return `${rateType === 'month' ? '한 달' : '일 년'} ${rate}%`;
-}
-
 export const DEFAULT_TEMPLATE =
-  '[{가게이름}] {이름}님, {월}월 이자 {이자} 납부일({납부일})입니다. 입금 계좌: {계좌}. 감사합니다.';
+  '[{상호}] {이름}님, {월}월 이자 {이자} 납부일({납부일})입니다. 입금 계좌: {계좌}. 감사합니다.';
 
-/** 문자 문구 만들기. 템플릿의 {이름} {이자} {월} {납부일} {회차} {가게이름} {계좌} 를 채운다. */
+/** 문자 문구 만들기. 템플릿의 {이름} {이자} {월} {납부일} {회차} {상호} {계좌} 를 채운다 ({가게이름} 은 예전 이름). */
 export function renderMessage(settings: Settings, item: DueItem): string {
   const { m } = parseISO(item.dueDate);
   const values: Record<string, string> = {
-    가게이름: settings.shopName || '가게 이름',
+    상호: settings.shopName || '상호',
+    가게이름: settings.shopName || '상호',
     계좌: settings.account || '[계좌번호]',
     이름: item.name,
     이자: won(item.amount),
