@@ -1,0 +1,25 @@
+name: Release
+
+# package.json 의 version 을 올리고 'v1.2.3' 같은 태그를 push 하면
+# Windows 설치 파일을 만들어 공개 저장소(IT-pawn-shop-releases)의 Release 로 올린다.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: 태그와 package.json 버전이 같은지 확인
+        shell: bash
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
