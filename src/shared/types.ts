@@ -28,6 +28,8 @@ export interface Contract {
   monthlyInterest: number;
   collateral: string;
   maturityDate: ISODate | null;
+  /** 만기 자동 연장 횟수 */
+  renewCount: number;
   status: ContractStatus;
   closedDate: ISODate | null;
   memo: string;

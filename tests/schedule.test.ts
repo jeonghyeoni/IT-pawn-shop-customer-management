@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   addMonths, buildDashboard, buildPeriods, buildSentList, daysBetween, dueDate, monthlyInterest, nextLabel,
-  periodTotals, periodsUntil
+  periodTotals, periodsUntil, renewMaturity
 } from '../src/shared/schedule';
 import type { Contract, Customer, Notice, Payment } from '../src/shared/types';
 
 function contract(over: Partial<Contract>): Contract {
   return {
     id: 1, customerId: 1, contractDate: '2026-06-21', principal: 1_000_000, rateType: 'month', rate: 3,
-    monthlyInterest: 30_000, collateral: '아이폰', maturityDate: null, status: 'active', closedDate: null,
+    monthlyInterest: 30_000, collateral: '아이폰', maturityDate: null, renewCount: 0, status: 'active', closedDate: null,
     memo: '', createdAt: '2026-06-21 10:00:00', ...over
   };
 }
@@ -39,6 +39,17 @@ describe('날짜 계산', () => {
     expect(periodsUntil('2026-06-21', '2026-07-20')).toEqual([]);
     expect(periodsUntil('2026-06-21', '2026-07-21')).toEqual([1]);
     expect(periodsUntil('2026-06-21', '2026-10-21')).toEqual([1, 2, 3, 4]);
+  });
+});
+
+describe('만기 자동 연장', () => {
+  it('만기일 당일까지는 그대로, 다음 날 1년 연장', () => {
+    expect(renewMaturity('2026-10-21', '2026-10-21')).toBeNull();
+    expect(renewMaturity('2026-10-21', '2026-10-22')).toEqual({ date: '2027-10-21', times: 1 });
+  });
+  it('여러 해가 지났으면 한꺼번에 연장', () => {
+    expect(renewMaturity('2023-03-10', '2026-10-22')).toEqual({ date: '2027-03-10', times: 4 });
+    expect(renewMaturity('2025-10-22', '2026-10-22')).toEqual({ date: '2026-10-22', times: 1 });
   });
 });
 

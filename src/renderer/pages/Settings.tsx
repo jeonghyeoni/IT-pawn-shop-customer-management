@@ -72,7 +72,7 @@ export function Settings({ settings, onSaved }: { settings: SettingsT; onSaved: 
         </div>
       </section>
 
-      <section className="card" style={{ padding: 28 }}>
+      <section className="card" style={{ padding: 28 }} data-tour="st-zoom">
         <h2 className="section-title">화면 크기</h2>
         <div style={{ color: 'var(--ink-2)' }}>글자와 버튼 크기를 고릅니다. 누르면 바로 바뀝니다.</div>
         <div className="segmented" role="group" aria-label="화면 크기" style={{ alignSelf: 'flex-start' }}>
@@ -84,7 +84,7 @@ export function Settings({ settings, onSaved }: { settings: SettingsT; onSaved: 
         </div>
       </section>
 
-      <section className="card" style={{ padding: 28 }}>
+      <section className="card" style={{ padding: 28 }} data-tour="st-data">
         <h2 className="section-title">데이터 관리</h2>
         <div style={{ color: 'var(--ink-2)' }}>
           모든 데이터는 이 컴퓨터의 <b>{info?.dataDir}</b> 폴더에 저장됩니다. 프로그램 실행 시 하루 1회 자동으로 백업됩니다.

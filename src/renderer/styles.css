@@ -203,6 +203,28 @@ h1, h2, h3 { margin: 0; }
 .check { display: flex; align-items: flex-start; gap: 12px; font-size: 20px; cursor: pointer; }
 .check input { width: 28px; height: 28px; margin-top: 2px; flex: none; }
 
+/* ---------- 도움말 ---------- */
+.tab.help-btn { width: 56px; padding: 0; justify-content: center; border-radius: 999px; background: var(--amber-soft); color: var(--amber-ink); border: 2px solid var(--amber-line); font-size: 30px; font-weight: 900; }
+.tab.help-btn:hover { background: #FDE68A; }
+.tour { position: fixed; inset: 0; z-index: 70; }
+.tour-block { position: fixed; inset: 0; }
+.tour-shade { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.62); }
+.tour-spot { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.62); outline: 4px solid #FBBF24; pointer-events: none; transition: top 0.2s, left 0.2s, width 0.2s, height 0.2s; }
+.tour-line { position: fixed; inset: 0; pointer-events: none; }
+.tour-line line { stroke: #FBBF24; stroke-width: 4; }
+.tour-line circle { fill: #FBBF24; }
+.tour-bubble { position: fixed; width: min(500px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 10px; padding: 20px 24px; background: #fff; border: 4px solid #FBBF24; border-radius: 18px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35); }
+.tour-bubble.centered { top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(620px, calc(100vw - 32px)); }
+.tour-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 17px; color: var(--muted); }
+.tour-chip { padding: 2px 12px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-dark); font-weight: 700; }
+.tour-title { font-size: 26px; font-weight: 900; }
+.tour-body { font-size: 20px; line-height: 1.6; color: var(--ink-2); }
+.tour-missing { padding: 10px 14px; border-radius: 10px; background: var(--amber-soft); color: var(--amber-ink); font-size: 18px; font-weight: 700; }
+.tour-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }
+.tour-nav .btn { min-width: 130px; }
+.tour-close { position: fixed; top: 14px; right: 18px; z-index: 1; display: inline-flex; align-items: center; gap: 8px; height: 60px; padding: 0 22px 0 16px; border: 3px solid #fff; border-radius: 14px; background: var(--ink); color: #fff; font-family: inherit; font-size: 22px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); }
+.tour-close:hover { background: #374151; }
+
 /* ---------- 창 ---------- */
 .overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 50; }
 .dialog { background: #fff; border-radius: 20px; padding: 28px; max-width: 640px; width: 100%; display: flex; flex-direction: column; gap: 16px; border: 3px solid var(--amber-line); }

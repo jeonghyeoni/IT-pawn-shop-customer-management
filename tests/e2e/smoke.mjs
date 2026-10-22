@@ -70,7 +70,9 @@ try {
   await page.getByText('010-9876-1234').waitFor();
   assert.equal(await page.locator('.candidate').count(), 2, '동명이인 두 명이 보여야 함');
   await page.locator('.candidate', { hasText: '010-9876-1234' }).getByRole('button').click();
+  assert.equal(await page.getByLabel('만기일').inputValue(), '2027-10-21', '만기 기본 1년');
   await page.getByLabel('계약일').fill('2026-08-21');
+  assert.equal(await page.getByLabel('만기일').inputValue(), '2027-08-21', '계약일을 바꾸면 만기도 따라감');
   await page.getByLabel('대부금액 (원)').fill('1000000');
   await page.getByLabel('이자율 (%)').fill('20');
   await page.getByText('16,667원').first().waitFor();
@@ -147,6 +149,16 @@ try {
   await row1.getByRole('button', { name: /수납 확인/ }).click();
   await row1.getByRole('button', { name: /수납 완료\s*10월 21일/ }).waitFor();
   await shot('07-contract-detail-periods');
+  // 도움말: 어디서 눌러도 '오늘 할 일'부터, [이전]/[다음], [✕ 닫기]
+  await page.getByRole('button', { name: '도움말' }).click();
+  const tour = page.getByRole('dialog');
+  await tour.getByRole('heading', { name: '전당포 관리 사용법' }).waitFor();
+  await tour.getByRole('button', { name: '다음 ›' }).click();
+  await tour.getByRole('heading', { name: '메뉴' }).waitFor();
+  await tour.getByRole('button', { name: '‹ 이전' }).click();
+  await tour.getByRole('heading', { name: '전당포 관리 사용법' }).waitFor();
+  await page.getByRole('button', { name: '도움말 닫기' }).click();
+  await tour.waitFor({ state: 'detached' });
   await page.locator('.status-bar').getByRole('button', { name: '상환 완료 처리' }).click();
   await page.locator('.dialog').getByRole('button', { name: '상환 완료 처리' }).click();
   await page.getByRole('button', { name: '진행 중으로 복원' }).waitFor();
@@ -173,6 +185,37 @@ try {
   await page.waitForFunction(() => document.querySelector('[aria-pressed="true"]')?.textContent?.includes('90%'));
   assert.equal(await zoomOf(app), 0.9);
   await shot('10-settings');
+
+  // 도움말을 끝까지 넘기면 [완료]로 바뀌고 누르면 닫힘
+  await page.getByRole('button', { name: '설정' }).click();
+  await page.getByRole('button', { name: '도움말' }).click();
+  await tour.getByRole('heading', { name: '전당포 관리 사용법' }).waitFor();
+  const seen = [];
+  for (let n = 0; n < 80; n++) {
+    seen.push(await tour.locator('#tour-title').textContent());
+    const done = tour.getByRole('button', { name: '완료 ✓' });
+    if (await done.count()) {
+      await shot('12-help-last');
+      await done.click();
+      break;
+    }
+    const next = tour.getByRole('button', { name: '다음 ›' });
+    await next.click();
+    await page.waitForFunction((prev) => document.querySelector('#tour-title')?.textContent !== prev, seen[seen.length - 1]);
+    await page.waitForFunction(() => !document.querySelector('.tour-nav .btn:last-child')?.hasAttribute('disabled'));
+  }
+  await tour.waitFor({ state: 'detached' });
+  for (const t of ['오늘 이자 고지 카드', '이자 연체', '새 계약 ④ 만기일', '계약 한 줄', '회차별 이자 내역', '이 채무자의 계약', '도움말 다시 보기']) assert.ok(seen.includes(t), `도움말 단계: ${t}`);
+  await page.getByRole('heading', { name: '설정', exact: true }).waitFor(); // 도움말을 누른 화면으로 돌아옴
+  console.log(`도움말 ${seen.length}단계`);
+
+  // 만기가 지난 진행 중 계약은 1년 자동 연장
+  const { contract: k3 } = await call('getContract', c3);
+  await call('updateContract', c3, { customerId: k3.customerId, contractDate: k3.contractDate, principal: k3.principal,
+    rateType: k3.rateType, rate: k3.rate, collateral: k3.collateral, maturityDate: '2026-10-20', memo: k3.memo });
+  const renewed = (await call('getContract', c3)).contract;
+  assert.equal(renewed.maturityDate, '2027-10-20');
+  assert.equal(renewed.renewCount, 1);
 
   // 데이터가 파일로 남는지 + 백업
   assert.ok(fs.existsSync(path.join(dataDir, 'data.db')));

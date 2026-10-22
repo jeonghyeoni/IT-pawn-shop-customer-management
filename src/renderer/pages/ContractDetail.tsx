@@ -49,7 +49,7 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
         <div className="row" style={{ gap: 14 }}>
           <h1 style={{ fontSize: 36, fontWeight: 900 }}>{c.collateral || '(담보물 미기재)'}</h1>
         </div>
-        <button type="button" className="name-link row" style={{ fontSize: 24, fontWeight: 700, gap: 10 }}
+        <button type="button" className="name-link row" style={{ fontSize: 24, fontWeight: 700, gap: 10 }} data-tour="cd-customer"
           onClick={() => go({ name: 'customer', id: customer.id })}>
           <UserIcon size={26} />{customer.name} · {customer.phone}
         </button>
@@ -76,7 +76,7 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
             </>
           )}
         </div>
-        <button type="button" className="btn outline" onClick={() => go({ name: 'editContract', id: c.id })}>
+        <button type="button" className="btn outline" onClick={() => go({ name: 'editContract', id: c.id })} data-tour="cd-edit">
           <PencilIcon size={22} />계약 수정
         </button>
       </div>
@@ -87,7 +87,15 @@ export function ContractDetail({ id, today }: { id: number; today: string }) {
             <h2 id="info-h" style={{ fontSize: 24, fontWeight: 900 }}>계약 정보</h2>
             <dl className="dl">
               <div><dt>계약일</dt><dd>{longDate(c.contractDate)}</dd></div>
-              <div><dt>만기일</dt><dd>{c.maturityDate ? longDate(c.maturityDate) : '미정'}</dd></div>
+              <div data-tour="cd-maturity">
+                <dt>만기일</dt>
+                <dd>{c.maturityDate ? longDate(c.maturityDate) : '미정'}</dd>
+                {c.maturityDate && active && (
+                  <div className="hint" style={{ fontSize: 16 }}>{c.renewCount > 0 ? `자동 연장 ${c.renewCount}회 · ` : ''}종료하지 않으면 1년씩 자동 연장</div>
+                )}
+                <button type="button" className="name-link" style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 17, textDecoration: 'underline' }}
+                  onClick={() => go({ name: 'editContract', id: c.id })}>만기일 변경</button>
+              </div>
               <div><dt>대부금액</dt><dd>{won(c.principal)}</dd></div>
               <div><dt>이자율</dt><dd>{rateText(c.rateType, c.rate)}</dd></div>
               <div><dt>월 이자</dt><dd style={{ fontSize: 26, fontWeight: 900, color: 'var(--blue)' }}>{won(c.monthlyInterest)}</dd></div>

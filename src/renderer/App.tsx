@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Settings as SettingsT } from '../shared/types';
 import { api } from './api';
 import { useApp, useLoad } from './app-context';
+import { Tour } from './components/Tour';
 import { Header, UpdateBanner } from './components/ui';
 import { ContractDetail } from './pages/ContractDetail';
 import { ContractForm } from './pages/ContractForm';
@@ -18,9 +19,19 @@ function EditContract({ id, today }: { id: number; today: string }) {
 }
 
 export function App() {
-  const { route, fail } = useApp();
+  const { route, fail, confirm } = useApp();
   const [settings, setSettings] = useState<SettingsT | null>(null);
   const [today, setToday] = useState<string | null>(null);
+  const [help, setHelp] = useState(false);
+  const closeHelp = useCallback(() => setHelp(false), []);
+  // 도움말은 여러 화면을 옮겨 다니므로, 작성 중인 계약이 있으면 먼저 확인한다
+  const openHelp = async () => {
+    if (route.name === 'new' || route.name === 'editContract') {
+      const ok = await confirm({ title: '도움말을 시작할까요?', body: '도움말이 여러 화면을 차례로 보여 주므로 지금 작성 중인 내용은 저장되지 않고 사라집니다.', yes: '도움말 보기' });
+      if (!ok) return;
+    }
+    setHelp(true);
+  };
 
   useEffect(() => {
     api.getSettings().then(setSettings).catch(fail);
@@ -47,9 +58,10 @@ export function App() {
 
   return (
     <>
-      <Header shopName={settings.shopName} today={today} />
+      <Header shopName={settings.shopName} today={today} onHelp={openHelp} />
       <UpdateBanner />
       {page}
+      {help && <Tour onClose={closeHelp} />}
     </>
   );
 }

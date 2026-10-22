@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { digitsOnly, longDate, won } from '../../shared/format';
-import { addMonths, dueDate, monthlyInterest, parseISO, periodsUntil } from '../../shared/schedule';
+import { TERM_MONTHS, addMonths, dueDate, monthlyInterest, parseISO, periodsUntil } from '../../shared/schedule';
 import type { Contract, Customer, ContractInput, RateType } from '../../shared/types';
 import { api } from '../api';
 import { useApp } from '../app-context';
@@ -31,7 +31,9 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
   const [principal, setPrincipal] = useState(c ? String(c.principal) : '');
   const [rateType, setRateType] = useState<RateType>(c?.rateType ?? 'year');
   const [rate, setRate] = useState(c ? String(c.rate) : '');
-  const [maturity, setMaturity] = useState(c?.maturityDate ?? '');
+  // 새 계약은 만기 기본 1년. 직접 고치기 전까지는 계약일을 바꾸면 따라 바뀐다.
+  const [maturity, setMaturity] = useState(c ? c.maturityDate ?? '' : addMonths(today, TERM_MONTHS));
+  const [maturityTouched, setMaturityTouched] = useState(!!c);
   const [collateral, setCollateral] = useState(c?.collateral ?? '');
   const [memo, setMemo] = useState(c?.memo ?? '');
   const [photos, setPhotos] = useState<string[]>(existing?.photos ?? []);
@@ -115,7 +117,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
       {existing && <BackButton />}
       <h1 className="page-title">{existing ? '계약 수정' : '새 계약 추가'}</h1>
 
-      <section className="card" style={{ padding: 28 }}>
+      <section className="card" style={{ padding: 28 }} data-tour="nc-customer">
         <Step no={1} title="채무자" />
         <CustomerPicker value={customer} onChange={setCustomer} />
       </section>
@@ -125,7 +127,10 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
         <div className="row top" style={{ gap: 20 }}>
           <div className="field" style={{ flex: '1 1 260px' }}>
             <label htmlFor="f-date">계약일</label>
-            <input id="f-date" type="date" className="input" value={date} max="2999-12-31" onChange={(e) => setDate(e.target.value)} />
+            <input id="f-date" type="date" className="input" value={date} max="2999-12-31" onChange={(e) => {
+              setDate(e.target.value);
+              if (!maturityTouched && /^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) setMaturity(addMonths(e.target.value, TERM_MONTHS));
+            }} />
           </div>
           <div className="field" style={{ flex: '1 1 260px' }}>
             <label htmlFor="f-principal">대부금액 (원)</label>
@@ -164,15 +169,17 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
             </div>
           )}
         </div>
-        <div className="field" style={{ maxWidth: 420 }}>
-          <label htmlFor="f-maturity">만기일 <span className="muted" style={{ fontWeight: 400 }}>(선택)</span></label>
+        <div className="field" style={{ maxWidth: 640 }}>
+          <label htmlFor="f-maturity">만기일 <span className="muted" style={{ fontWeight: 400 }}>(기본 1년)</span></label>
           <div className="row" style={{ flexWrap: 'nowrap' }}>
-            <input id="f-maturity" type="date" className="input" value={maturity} max="2999-12-31" onChange={(e) => setMaturity(e.target.value)} />
-            {validDate && !maturity && (
-              <button type="button" className="btn plain sm" onClick={() => setMaturity(addMonths(date, 3))}>+3개월</button>
+            <input id="f-maturity" type="date" className="input" value={maturity} max="2999-12-31"
+              onChange={(e) => { setMaturity(e.target.value); setMaturityTouched(true); }} />
+            {validDate && maturity !== addMonths(date, TERM_MONTHS) && (
+              <button type="button" className="btn plain sm" onClick={() => { setMaturity(addMonths(date, TERM_MONTHS)); setMaturityTouched(true); }}>1년</button>
             )}
-            {maturity && <button type="button" className="btn plain sm" onClick={() => setMaturity('')}>지우기</button>}
+            {maturity && <button type="button" className="btn plain sm" onClick={() => { setMaturity(''); setMaturityTouched(true); }}>지우기</button>}
           </div>
+          <div className="hint">만기일을 클릭해 날짜를 바꿀 수 있습니다. 상환 완료·유질 처리를 하지 않으면 만기 다음 날 1년씩 자동 연장됩니다.</div>
         </div>
         {pastCount > 0 && (
           <label className="check" style={{ padding: 16, borderRadius: 12, background: 'var(--amber-soft)' }}>
@@ -185,7 +192,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
         )}
       </section>
 
-      <section className="card" style={{ padding: 28, gap: 20 }}>
+      <section className="card" style={{ padding: 28, gap: 20 }} data-tour="nc-collateral">
         <Step no={3} title="담보물" />
         <div className="field">
           <label htmlFor="f-collateral">담보물 내역</label>
@@ -198,7 +205,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
         </div>
       </section>
 
-      <section className="card" style={{ padding: 28 }}>
+      <section className="card" style={{ padding: 28 }} data-tour="nc-photos">
         <Step no={4} title="첨부 사진" extra="(선택)" />
         <div style={{ color: 'var(--ink-2)' }}>담보물, 계약서 등 관련 사진을 첨부할 수 있습니다.</div>
         <PhotoGrid scope={existing ? existing.contract.id : 'p'} names={photos} onAdd={addPhotos} onRemove={removePhoto} />
@@ -207,7 +214,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
 
       {error && <div role="alert" className="error-text" style={{ fontSize: 22 }}>{error}</div>}
       <div className="row" style={{ gap: 16 }}>
-        <button type="button" className="btn primary lg" style={{ flex: '1 1 360px' }} disabled={saving} onClick={save}>
+        <button type="button" className="btn primary lg" style={{ flex: '1 1 360px' }} disabled={saving} onClick={save} data-tour="nc-save">
           {existing ? '수정 내용 저장' : '계약 등록'}
         </button>
         <button type="button" className="btn plain lg" style={{ flex: '0 1 200px', fontSize: 24, fontWeight: 700 }}

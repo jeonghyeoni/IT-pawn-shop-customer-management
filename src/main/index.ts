@@ -148,6 +148,8 @@ app.whenReady().then(async () => {
   ipcMain.handle('api', async (_e, method: ApiMethod, args: unknown[]) => {
     const fn = api[method] as ((...a: unknown[]) => Promise<unknown>) | undefined;
     if (typeof fn !== 'function' || !Object.prototype.hasOwnProperty.call(api, method)) throw new Error(`알 수 없는 기능: ${method}`);
+    // 켜 둔 채 날짜가 바뀌어도 만기 지난 계약이 바로 연장되도록 매번 확인 (대상이 없으면 조회 한 번뿐)
+    repo.autoRenew(today());
     return fn(...args);
   });
 
