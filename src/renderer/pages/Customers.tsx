@@ -93,7 +93,7 @@ export function CustomerDetail({ id }: { id: number }) {
                 등록일 {longDate(c.createdAt.slice(0, 10))}{c.memo ? ` · 비고: ${c.memo}` : ''}
               </div>
             </div>
-            <div className="row">
+            <div className="row" data-tour="cu-actions">
               <button type="button" className="btn primary" onClick={() => go({ name: 'new', customerId: c.id })}><PlusIcon />새 계약 추가</button>
               <button type="button" className="btn plain" onClick={() => setEdit({ name: c.name, phone: c.phone, memo: c.memo })}><PencilIcon size={22} />정보 수정</button>
             </div>

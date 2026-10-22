@@ -73,7 +73,7 @@ export function ContractList() {
   return (
     <main className="main" style={{ gap: 20 }}>
       <h1 className="page-title">계약 목록</h1>
-      <section aria-label="검색 조건" className="card" style={{ gap: 18 }}>
+      <section aria-label="검색 조건" className="card" style={{ gap: 18 }} data-tour="cl-search">
         <div className="field">
           <label htmlFor="sq">채무자 이름, 전화번호, 담보물로 검색할 수 있습니다</label>
           <div className="search-box">
@@ -111,7 +111,7 @@ export function ContractList() {
 
       <div className="row between">
         <div style={{ fontSize: 24, fontWeight: 900 }}>검색 결과 {rows?.length ?? 0}건</div>
-        <button type="button" className="btn success" onClick={exportXlsx}><DownloadIcon />엑셀로 내보내기</button>
+        <button type="button" className="btn success" onClick={exportXlsx} data-tour="cl-export"><DownloadIcon />엑셀로 내보내기</button>
       </div>
       {rows && <ContractTable rows={rows} />}
     </main>

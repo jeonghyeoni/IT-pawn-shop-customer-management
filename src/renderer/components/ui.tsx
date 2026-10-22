@@ -23,7 +23,7 @@ export function Header({ shopName, today, onHelp }: { shopName: string; today: I
           <div className="brand-name">{shopName ? `${shopName} 관리` : '전당포 관리'}</div>
           <div className="brand-date">{today ? longDateWithWeekday(today) : ''}</div>
         </div>
-        <nav aria-label="메뉴" className="nav">
+        <nav aria-label="메뉴" className="nav" data-tour="nav">
           {TABS.map((t) => (
             <button key={t.name} type="button" className="tab" aria-current={tab === t.name ? 'page' : undefined}
               onClick={() => tabTo({ name: t.name } as never)}>

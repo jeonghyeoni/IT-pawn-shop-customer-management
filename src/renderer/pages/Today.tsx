@@ -37,7 +37,7 @@ export function Today({ settings }: { settings: Settings }) {
 
   return (
     <main className="main">
-      <section aria-label="오늘 요약" className="hero">
+      <section aria-label="오늘 요약" className="hero" data-tour="hero">
         {total === 0 ? (
           <div className="hero-done"><CheckIcon size={56} />오늘 이자 고지 대상이 없습니다</div>
         ) : (
@@ -73,8 +73,8 @@ export function Today({ settings }: { settings: Settings }) {
         )}
         {total === 0 && <div className="card muted" style={{ fontSize: 21 }}>오늘 납부일인 계약이 없습니다.</div>}
 
-        {pending.map((i) => (
-          <article key={k(i)} className="due-card">
+        {pending.map((i, idx) => (
+          <article key={k(i)} className="due-card" data-tour={idx === 0 ? 'due-card' : undefined}>
             <div className="row between">
               <div className="row">
                 <button type="button" className="name-link big-name" onClick={() => openCustomer(i.customerId)}>{i.name}</button>
@@ -87,11 +87,11 @@ export function Today({ settings }: { settings: Settings }) {
               </div>
             </div>
             <div className="muted" style={{ fontSize: 19, marginTop: -8 }}>
-              대부금액 {won(i.principal)} · {rateText(i.rateType, i.rate)} · 계약일 {i.contractDate.replace(/-/g, '.')} · 담보물: {i.collateral || '—'} · <button type="button" className="name-link" style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 19 }} onClick={() => openContract(i.contractId)}>계약 상세</button>
+              대부금액 {won(i.principal)} · {rateText(i.rateType, i.rate)} · 계약일 {i.contractDate.replace(/-/g, '.')} · 담보물: {i.collateral || '—'} · <button type="button" className="name-link due-detail" style={{ color: 'var(--blue)', fontWeight: 700, fontSize: 19 }} onClick={() => openContract(i.contractId)}>계약 상세</button>
             </div>
             <div className="row" style={{ alignItems: 'stretch' }}>
-              <div className="message" style={{ flex: '1 1 420px' }}>{renderMessage(settings, i)}</div>
-              <button type="button" className="btn outline" style={{ height: 'auto', minHeight: 60 }} onClick={() => copy(i)}>
+              <div className="message due-msg" style={{ flex: '1 1 420px' }}>{renderMessage(settings, i)}</div>
+              <button type="button" className="btn outline due-copy" style={{ height: 'auto', minHeight: 60 }} onClick={() => copy(i)}>
                 <CopyIcon />{copied === k(i) ? '복사됨' : '문구 복사'}
               </button>
               <div className="check-row">
@@ -103,8 +103,8 @@ export function Today({ settings }: { settings: Settings }) {
         ))}
 
         {done.length > 0 && <div className="done-divider"><CheckIcon size={26} />발송 완료 {done.length}건</div>}
-        {done.map((i) => (
-          <article key={k(i)} className="card" style={{ padding: '18px 24px', gap: 14 }}>
+        {done.map((i, idx) => (
+          <article key={k(i)} className="card" style={{ padding: '18px 24px', gap: 14 }} data-tour={idx === 0 ? 'done-card' : undefined}>
             <div className="row between">
               <div className="row">
                 <span className="chip solid"><CheckIcon size={18} />{i.paid ? '발송·수납 완료' : '발송 완료'}</span>

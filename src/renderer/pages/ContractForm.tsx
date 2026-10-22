@@ -117,7 +117,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
       {existing && <BackButton />}
       <h1 className="page-title">{existing ? '계약 수정' : '새 계약 추가'}</h1>
 
-      <section className="card" style={{ padding: 28 }}>
+      <section className="card" style={{ padding: 28 }} data-tour="nc-customer">
         <Step no={1} title="채무자" />
         <CustomerPicker value={customer} onChange={setCustomer} />
       </section>
@@ -192,7 +192,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
         )}
       </section>
 
-      <section className="card" style={{ padding: 28, gap: 20 }}>
+      <section className="card" style={{ padding: 28, gap: 20 }} data-tour="nc-collateral">
         <Step no={3} title="담보물" />
         <div className="field">
           <label htmlFor="f-collateral">담보물 내역</label>
@@ -205,7 +205,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
         </div>
       </section>
 
-      <section className="card" style={{ padding: 28 }}>
+      <section className="card" style={{ padding: 28 }} data-tour="nc-photos">
         <Step no={4} title="첨부 사진" extra="(선택)" />
         <div style={{ color: 'var(--ink-2)' }}>담보물, 계약서 등 관련 사진을 첨부할 수 있습니다.</div>
         <PhotoGrid scope={existing ? existing.contract.id : 'p'} names={photos} onAdd={addPhotos} onRemove={removePhoto} />
@@ -214,7 +214,7 @@ export function ContractForm({ today, existing, initialCustomerId }: Props) {
 
       {error && <div role="alert" className="error-text" style={{ fontSize: 22 }}>{error}</div>}
       <div className="row" style={{ gap: 16 }}>
-        <button type="button" className="btn primary lg" style={{ flex: '1 1 360px' }} disabled={saving} onClick={save}>
+        <button type="button" className="btn primary lg" style={{ flex: '1 1 360px' }} disabled={saving} onClick={save} data-tour="nc-save">
           {existing ? '수정 내용 저장' : '계약 등록'}
         </button>
         <button type="button" className="btn plain lg" style={{ flex: '0 1 200px', fontSize: 24, fontWeight: 700 }}
