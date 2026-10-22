@@ -192,6 +192,7 @@ export function Today({ settings }: { settings: Settings }) {
         <section aria-labelledby="due-h" className="card" style={{ gap: 12 }}>
           <h2 id="due-h" style={{ fontSize: 24, fontWeight: 900 }}>만기 임박 {data.maturity.length}건</h2>
           {data.maturity.length === 0 && <div className="hint">해당 없음</div>}
+          {data.maturity.length > 0 && <div className="hint">상환 완료·유질 처리를 하지 않으면 만기 다음 날 1년 자동 연장됩니다.</div>}
           {data.maturity.map((m) => (
             <button key={m.contractId} type="button" className={`link-row ${m.daysLeft < 0 ? 'orange' : 'blue'}`} onClick={() => openContract(m.contractId)}>
               <span style={{ fontSize: 22, fontWeight: 700 }}>{m.name} · {m.phone}</span>

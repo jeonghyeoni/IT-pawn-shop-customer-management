@@ -1,7 +1,7 @@
 import type { CustomerInput, CustomerSaveResult } from '../shared/api';
 import { DEFAULT_TEMPLATE, DEFAULT_ZOOM, ZOOMS, digitsOnly, formatPhone, isValidPhone } from '../shared/format';
 import {
-  buildDashboard, buildPeriods, buildSentList, dueDate, monthlyInterest, nextLabel, periodTotals, periodsUntil,
+  buildDashboard, buildPeriods, buildSentList, dueDate, monthlyInterest, nextLabel, periodTotals, periodsUntil, renewMaturity,
   type ScheduleData
 } from '../shared/schedule';
 import type {
@@ -13,7 +13,7 @@ import type { Store } from './store';
 interface CustomerRecord { id: number; name: string; phone: string; memo: string; created_at: string }
 interface ContractRecord {
   id: number; customer_id: number; contract_date: string; principal: number; rate_type: 'month' | 'year';
-  rate: number; monthly_interest: number; collateral: string; maturity_date: string | null;
+  rate: number; monthly_interest: number; collateral: string; maturity_date: string | null; renew_count: number;
   status: ContractStatus; closed_date: string | null; memo: string; created_at: string;
 }
 
@@ -23,7 +23,7 @@ const toCustomer = (r: CustomerRecord): Customer =>
 const toContract = (r: ContractRecord): Contract => ({
   id: r.id, customerId: r.customer_id, contractDate: r.contract_date, principal: r.principal,
   rateType: r.rate_type, rate: r.rate, monthlyInterest: r.monthly_interest, collateral: r.collateral,
-  maturityDate: r.maturity_date, status: r.status, closedDate: r.closed_date, memo: r.memo, createdAt: r.created_at
+  maturityDate: r.maturity_date, renewCount: r.renew_count, status: r.status, closedDate: r.closed_date, memo: r.memo, createdAt: r.created_at
 });
 
 export function nowStamp(d = new Date()): string {
@@ -261,10 +261,26 @@ export class Repo {
     const interest = monthlyInterest(input.principal, input.rateType, input.rate);
     this.store.tx(() => this.store.run(
       `UPDATE contracts SET customer_id = ?, contract_date = ?, principal = ?, rate_type = ?, rate = ?, monthly_interest = ?,
-        collateral = ?, maturity_date = ?, memo = ? WHERE id = ?`,
+        collateral = ?, renew_count = CASE WHEN maturity_date IS ? THEN renew_count ELSE 0 END, maturity_date = ?, memo = ?
+        WHERE id = ?`,
       [input.customerId, input.contractDate, input.principal, input.rateType, input.rate, interest,
-        input.collateral.trim(), input.maturityDate, input.memo.trim(), id]
+        input.collateral.trim(), input.maturityDate, input.maturityDate, input.memo.trim(), id]
     ));
+  }
+
+  /** 만기가 지난 진행 중 계약을 1년씩 연장한다. 연장한 계약 수를 돌려준다. */
+  autoRenew(today: ISODate): number {
+    const rows = this.store.all<{ id: number; maturity_date: string }>(
+      "SELECT id, maturity_date FROM contracts WHERE status = 'active' AND maturity_date IS NOT NULL AND maturity_date < ?", [today]
+    );
+    if (!rows.length) return 0;
+    this.store.tx(() => {
+      for (const r of rows) {
+        const next = renewMaturity(r.maturity_date, today);
+        if (next) this.store.run('UPDATE contracts SET maturity_date = ?, renew_count = renew_count + ? WHERE id = ?', [next.date, next.times, r.id]);
+      }
+    });
+    return rows.length;
   }
 
   deleteContract(id: number): void {

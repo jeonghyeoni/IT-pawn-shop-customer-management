@@ -33,6 +33,20 @@ export function addMonths(iso: ISODate, n: number): ISODate {
   return toISO(ny, nm, Math.min(d, lastDayOfMonth(ny, nm)));
 }
 
+/** 새 계약의 기본 만기 / 자동 연장 단위 (개월) */
+export const TERM_MONTHS = 12;
+
+/**
+ * 만기가 지난 진행 중 계약은 종료 처리하지 않는 한 1년씩 자동 연장한다.
+ * 만기일 다음 날 연장되며, 몇 년이 지났으면 한꺼번에 연장한다. 연장할 필요가 없으면 null.
+ */
+export function renewMaturity(maturity: ISODate, today: ISODate): { date: ISODate; times: number } | null {
+  if (maturity >= today) return null;
+  let times = 1;
+  while (addMonths(maturity, TERM_MONTHS * times) < today) times++;
+  return { date: addMonths(maturity, TERM_MONTHS * times), times };
+}
+
 /** b - a (일) */
 export function daysBetween(a: ISODate, b: ISODate): number {
   const pa = parseISO(a);

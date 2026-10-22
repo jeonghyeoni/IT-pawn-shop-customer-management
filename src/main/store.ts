@@ -122,7 +122,9 @@ const MIGRATIONS = [
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
-  `
+  `,
+  // v1.0.4: 만기 자동 연장 횟수
+  `ALTER TABLE contracts ADD COLUMN renew_count INTEGER NOT NULL DEFAULT 0;`
 ];
 
 function wasmBinary(): ArrayBuffer {

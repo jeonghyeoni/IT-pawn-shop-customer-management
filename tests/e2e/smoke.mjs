@@ -70,7 +70,9 @@ try {
   await page.getByText('010-9876-1234').waitFor();
   assert.equal(await page.locator('.candidate').count(), 2, '동명이인 두 명이 보여야 함');
   await page.locator('.candidate', { hasText: '010-9876-1234' }).getByRole('button').click();
+  assert.equal(await page.getByLabel('만기일').inputValue(), '2027-10-21', '만기 기본 1년');
   await page.getByLabel('계약일').fill('2026-08-21');
+  assert.equal(await page.getByLabel('만기일').inputValue(), '2027-08-21', '계약일을 바꾸면 만기도 따라감');
   await page.getByLabel('대부금액 (원)').fill('1000000');
   await page.getByLabel('이자율 (%)').fill('20');
   await page.getByText('16,667원').first().waitFor();
@@ -147,6 +149,11 @@ try {
   await row1.getByRole('button', { name: /수납 확인/ }).click();
   await row1.getByRole('button', { name: /수납 완료\s*10월 21일/ }).waitFor();
   await shot('07-contract-detail-periods');
+  await page.getByRole('button', { name: '도움말' }).click();
+  await page.getByRole('dialog').getByRole('heading', { name: '계약 상세' }).waitFor();
+  await shot('11-help-contract');
+  await page.getByRole('button', { name: '도움말 닫기' }).click();
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
   await page.locator('.status-bar').getByRole('button', { name: '상환 완료 처리' }).click();
   await page.locator('.dialog').getByRole('button', { name: '상환 완료 처리' }).click();
   await page.getByRole('button', { name: '진행 중으로 복원' }).waitFor();
@@ -173,6 +180,22 @@ try {
   await page.waitForFunction(() => document.querySelector('[aria-pressed="true"]')?.textContent?.includes('90%'));
   assert.equal(await zoomOf(app), 0.9);
   await shot('10-settings');
+
+  // 도움말: 탭마다 그 화면 설명, Esc 로도 닫힘
+  await page.getByRole('button', { name: '오늘 할 일' }).click();
+  await page.getByRole('button', { name: '도움말' }).click();
+  await page.getByRole('dialog').getByRole('heading', { name: '오늘 할 일' }).waitFor();
+  await shot('12-help-today');
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
+
+  // 만기가 지난 진행 중 계약은 1년 자동 연장
+  const { contract: k3 } = await call('getContract', c3);
+  await call('updateContract', c3, { customerId: k3.customerId, contractDate: k3.contractDate, principal: k3.principal,
+    rateType: k3.rateType, rate: k3.rate, collateral: k3.collateral, maturityDate: '2026-10-20', memo: k3.memo });
+  const renewed = (await call('getContract', c3)).contract;
+  assert.equal(renewed.maturityDate, '2027-10-20');
+  assert.equal(renewed.renewCount, 1);
 
   // 데이터가 파일로 남는지 + 백업
   assert.ok(fs.existsSync(path.join(dataDir, 'data.db')));

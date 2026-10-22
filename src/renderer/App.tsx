@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Settings as SettingsT } from '../shared/types';
 import { api } from './api';
 import { useApp, useLoad } from './app-context';
+import { HelpLayer } from './components/Help';
 import { Header, UpdateBanner } from './components/ui';
 import { ContractDetail } from './pages/ContractDetail';
 import { ContractForm } from './pages/ContractForm';
@@ -21,6 +22,8 @@ export function App() {
   const { route, fail } = useApp();
   const [settings, setSettings] = useState<SettingsT | null>(null);
   const [today, setToday] = useState<string | null>(null);
+  const [help, setHelp] = useState(false);
+  const closeHelp = useCallback(() => setHelp(false), []);
 
   useEffect(() => {
     api.getSettings().then(setSettings).catch(fail);
@@ -47,9 +50,10 @@ export function App() {
 
   return (
     <>
-      <Header shopName={settings.shopName} today={today} />
+      <Header shopName={settings.shopName} today={today} onHelp={() => setHelp(true)} />
       <UpdateBanner />
       {page}
+      {help && <HelpLayer route={route.name} onClose={closeHelp} />}
     </>
   );
 }

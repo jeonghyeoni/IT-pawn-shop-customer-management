@@ -14,7 +14,7 @@ const TABS: { name: TabName; label: string; icon: ReactElement }[] = [
   { name: 'customers', label: '채무자 목록', icon: <UserIcon /> }
 ];
 
-export function Header({ shopName, today }: { shopName: string; today: ISODate | null }) {
+export function Header({ shopName, today, onHelp }: { shopName: string; today: ISODate | null; onHelp: () => void }) {
   const { tab, tabTo } = useApp();
   return (
     <header className="header">
@@ -34,6 +34,7 @@ export function Header({ shopName, today }: { shopName: string; today: ISODate |
             aria-current={tab === 'settings' ? 'page' : undefined} onClick={() => tabTo({ name: 'settings' })}>
             <GearIcon />
           </button>
+          <button type="button" className="tab help-btn" aria-label="도움말" title="이 화면 도움말" onClick={onHelp}>?</button>
         </nav>
       </div>
     </header>
